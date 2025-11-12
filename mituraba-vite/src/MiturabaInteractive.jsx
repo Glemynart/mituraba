@@ -361,7 +361,7 @@ La respuesta es sí. ...`,
             </audio>
             {ritualNeedsGesture && (
               <button onClick={enableRitualAudio} className="mt-3 rounded-xl border border-slate-600 hover:border-slate-400 px-4 py-2">
-                Activar ritual
+                Activar sonido de ronda
               </button>
             )}
           </div>
