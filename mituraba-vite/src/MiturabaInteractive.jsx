@@ -104,6 +104,7 @@ La respuesta es sí. ...`,
     { src: "/img/foto11.jpg", alt: "Foto 11" },
     { src: "/img/foto12.jpg", alt: "Foto 12" },
     { src: "/img/foto13.jpg", alt: "Foto 13" },
+    { src: "/img/foto14.jpg", alt: "Foto 14" },
   ]), []);
 
   const [lightbox, setLightbox] = useState({ open: false, index: 0 });
