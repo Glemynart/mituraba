@@ -126,27 +126,26 @@ La respuesta es sí. ...`,
       location: "Locación 1: Salida del Corregimiento de Currulao.",
       videos: [
         {
-          id: "VIDEO_ID_1",
-          title: "El bus con el charco rojo",
+          id: "np2jhslNg5k",
           desc:
-            "Descripción: Reto: Conseguir el polvo rojo para formar el charco; acordar tiempos para el uso del vehículo y la locación; sortear el sol de las 3 p. m.",
+            "Reto: Conseguir el polvo rojo para formar el charco; acordar tiempos para el uso del vehículo y la locación; sortear el sol de las 3 p. m.",
         },
-        { id: "VIDEO_ID_2", title: "Plano recurso 2 (renómbralo)", desc: "Descripción: Añade aquí el reto/logística principal de este plano." },
-        { id: "VIDEO_ID_3", title: "Plano recurso 3 (renómbralo)", desc: "Descripción: Añade aquí la dificultad o hallazgo de esta toma." },
+        { id: "80GkS3DYEj0", desc: "Reto: Revisar las escenas teniendo mucha luz que impedía ver bien lo que se grababa, no ensuciar el bus.." },
+        { id: "7Mlr0mxvLRw", desc: "Reto: Lograr que se captara bien las botas y los detalles y que las huellas rojas se notaran." },
       ],
     },
     {
       location: "Locación 2: Finca Santa Marta Fabio - Bajo del Oso",
       videos: [
-        { id: "VIDEO_ID_4", title: "Plano en portón (título alterno)", desc: "Descripción: Lograr la escena sin tránsito de personas y sin perder la luz de la tarde, con tiempo limitado." },
-        { id: "VIDEO_ID_5", title: "Plano de apoyo (título alterno)", desc: "Descripción: Ajustes de ritmo y continuidad; coordinación con dueños de la locación." },
+        { id: "nh4FwIPAA_8", desc: "Reto: Lograr la escena sin que pasaran personas, sin que se nos fuera la luz de la tarde, con un tiempo limitado." },
+        { id: "mbQ75B25T_o", desc: "Reto:  Lograr que fuera simbólico y no amarillista o sensacionalista." },
       ],
     },
     {
       location: "Locación 3: Barrio La Esperanza - Corregimiento de Currulao.",
       videos: [
-        { id: "VIDEO_ID_6", title: "Ronda infantil y lluvia", desc: "Descripción: Manejo de tiempos con niñas y niños; jugar primero, grabar después; control de agua." },
-        { id: "VIDEO_ID_7", title: "Dibujos y agua", desc: "Descripción: Lograr textura del papel mojado sin destruir el dibujo; microdetalles a contraluz." },
+        { id: "5vc-CAt7U1E", desc: "Reto: Mantener la concentración de los niños más pequeños, tiempos nocturnos para realizar el taller." },
+        { id: "BMWBJXo3l7E", desc: "Experiencia: Niños dispuestos, sin miedo a las cámaras y al aprendizaje, fue rápida la grabación." },
       ],
     },
   ];
