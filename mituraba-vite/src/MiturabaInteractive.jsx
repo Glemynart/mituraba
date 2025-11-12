@@ -351,10 +351,9 @@ La respuesta es sí. ...`,
         <div className="mx-auto max-w-4xl px-6">
           <header className="flex items-center gap-3 mb-4">
             <Music className="w-6 h-6 text-sky-400" />
-            <h2 className="text-2xl md:text-3xl font-bold">Lluvia & ritual</h2>
+            <h2 className="text-2xl md:text-3xl font-bold">Ronda infantil</h2>
           </header>
           <p className="text-slate-300 mb-4">
-            Este ambiente de lluvia se activa automáticamente al llegar aquí (suena junto al fondo). También puedes controlarlo manualmente:
           </p>
           <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
             <audio controls className="w-full">
@@ -365,7 +364,6 @@ La respuesta es sí. ...`,
                 Activar ritual
               </button>
             )}
-            <p className="text-xs text-slate-500 mt-2">Coloca el archivo en <code>/public/audios/ambiente-lluvia.wav</code>.</p>
           </div>
         </div>
       </section>
@@ -389,7 +387,7 @@ La respuesta es sí. ...`,
       {/* SESIONES DE VIDEO */}
       <section id="videos" className="relative z-10 py-16 md:py-24 bg-gradient-to-b from-slate-950 to-slate-900">
         <div className="mx-auto max-w-6xl px-6">
-          <h2 className="text-2xl md:text-3xl font-bold">Videos por locación</h2>
+          <h2 className="text-2xl md:text-3xl font-bold">Videos</h2>
 
           <div className="space-y-12 mt-8">
             {sesiones.map((sess, si) => (
