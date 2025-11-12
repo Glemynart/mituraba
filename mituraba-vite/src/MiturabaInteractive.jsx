@@ -145,7 +145,7 @@ Dibujos que dejan en la puerta de mi casa, que me recuerdan el tiempo que dedica
 
   // VIDEOS YouTube (hasta 5) — coloca tus IDs reales
   const videos = [
-    { id: "https://youtu.be/4WWohRUM3GE", title: "Teaser MITURABÁ" },
+    { id: "4WWohRUM3GE", title: "Teaser MITURABÁ" },
     { id: "VIDEO_ID_2", title: "Making of 1" },
     { id: "VIDEO_ID_3", title: "Making of 2" },
     { id: "VIDEO_ID_4", title: "Canción de la lluvia" },
