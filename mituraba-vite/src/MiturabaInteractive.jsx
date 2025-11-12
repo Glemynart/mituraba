@@ -1,30 +1,26 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
-import { Cloud, Droplets, Music, Info, Volume2, Image as ImageIcon, HelpCircle, Check, X, BookText } from "lucide-react";
+import { Droplets, Music, Info, Volume2, HelpCircle, Check, X, BookText } from "lucide-react";
 
-/*  MITURABÁ — Versión con:
-    - Lluvia animada + control de intensidad (visual/volumen)
-    - Intro “La búsqueda”
-    - Decisiones éticas (acordeones)
-    - Decisiones estéticas (nuevo bloque)
-    - Mitos (usan las MISMAS imágenes que la Galería)
-    - Sección “Crónica” (larga, colapsable)  ← NUEVA UBICACIÓN
-    - Audio opcional (ambiente-lluvia.wav)
-    - Galería con lightbox + navegación por teclado
-    - Videos YouTube (hasta 5)
+/*  MITURABÁ — Versión:
+    - Audio de fondo AUTOPLAY (truenos-lluvia.mp3) + control volumen (slider)
+    - Audio “ambiente-lluvia.wav” se AUTOPLAY al entrar a la sección “Lluvia & ritual” (con fallback botón si el navegador lo bloquea)
+    - Intro + Decisiones éticas (acordeones)
+    - Decisiones estéticas (mismo estilo que las éticas)
+    - Crónica (larga, colapsable)
+    - Galería (fotos) + Videos (hasta 5)
     - Quiz
-    - Audio de fondo AUTOPLAY (truenos-lluvia.mp3) + aviso si el navegador bloquea
-    - ¡Eliminado “Muro de memorias”!
+    - REMOVIDO: Mitos del territorio
 */
 
 export default function MiturabaInteractive() {
   const { scrollYProgress } = useScroll();
   const barWidth = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
 
-  // Visual lluvia + volumen de fondo
+  // Volumen de fondo + lluvia visual
   const [rainIntensity, setRainIntensity] = useState(0.4); // 0..1
 
-  // Audio de fondo (AUTOPLAY) — truenos-lluvia.mp3
+  // --- Audio de fondo (truenos) AUTOPLAY
   const bgAudioRef = useRef(null);
   const [bgNeedsGesture, setBgNeedsGesture] = useState(false);
 
@@ -41,14 +37,11 @@ export default function MiturabaInteractive() {
   }, [rainIntensity]);
 
   const enableBgAudio = () => {
-    const a = bgAudioRef.current;
-    if (!a) return;
-    a.play().then(() => setBgNeedsGesture(false)).catch(() => setBgNeedsGesture(true));
+    bgAudioRef.current?.play().then(() => setBgNeedsGesture(false)).catch(() => setBgNeedsGesture(true));
   };
 
+  // --- Decisiones éticas
   const [showEthics, setShowEthics] = useState(null);
-
-  // --- TEXTOS
   const ethics = useMemo(() => [
     { title: "Proteger a la fuente", text: "Omitimos entrevistas y rostros. En el territorio aún hay actores armados; nuestra prioridad fue no exponer a nadie." },
     { title: "Verificar antes que narrar", text: "Al cruzar documentos, un dato clave no coincidía. Decidimos no afirmar lo que no podíamos comprobar." },
@@ -56,57 +49,37 @@ export default function MiturabaInteractive() {
     { title: "No revictimizar el lugar", text: "Evitamos nombres y señalamientos. Bajo del Oso hoy es un sitio tranquilo: preferimos el símbolo (huellas rojas, lluvia) a la crudeza." },
   ], []);
 
-  // IMÁGENES DEL PROYECTO (Galería)
-  const gallery = useMemo(() => ([
-    { src: "/img/porton-bananera.jpg", alt: "Entrada bananera" },
-    { src: "/img/nina-lluvia.jpg", alt: "Niña jugando bajo el chorro" },
-    { src: "/img/dibujo-nino-1.jpg", alt: "Dibujo infantil 1" },
-    { src: "/img/arbol-noche.jpg", alt: "Árbol y raíces" },
-    { src: "/img/dibujo-ninos-varios.jpg", alt: "Dibujos infantiles varios" },
-  ]), []);
-
-  // MITOS — usan las MISMAS imágenes de "gallery" (sin duplicar)
-  const myths = useMemo(() => ([
-    { title: "El lugar donde siempre llueve", img: gallery[2].src, body: "Los niños salpican agua sobre sus dibujos: la memoria se moja, pero no se borra." },
-    { title: "Historias de miedo (que alegran)", img: gallery[4].src, body: "A los 4–9 años les llaman así. Entre risas y abrazos, el miedo se vuelve compañía." },
-    { title: "Las huellas que hablan", img: gallery[0].src, body: "Un hombre baja del bus. Sus botas dejan rastro rojo: recordar sin mostrar la violencia." },
-    { title: "La guardiana del río", img: gallery[3].src, body: "Una figura cuida que el agua lleve historias, no olvido. Si la escuchas, pide respeto." },
-    { title: "La casa del árbol", img: gallery[1].src, body: "Debajo del follaje, la ronda infantil suena más fuerte que la tormenta." },
-  ]), [gallery]);
-
-  // Estado para mitos (modal)
-  const [mythOpen, setMythOpen] = useState(null);
-
-  // Sonidito al abrir mito (feedback corto, opcional)
-  const clickAudio = useRef(null);
-  useEffect(() => {
-    clickAudio.current = new Audio("/audios/ambiente-lluvia.wav");
-    clickAudio.current.volume = 0.35;
-  }, []);
-  const playClick = () => { try { if (clickAudio.current){ clickAudio.current.currentTime = 0.1; clickAudio.current.play(); } } catch {} };
-
-  // LIGHTBOX GALERÍA
-  const [lightbox, setLightbox] = useState({ open: false, index: 0 });
-  useEffect(() => {
-    const onKey = (e) => {
-      if (!lightbox.open) return;
-      if (e.key === "Escape") setLightbox({ open: false, index: 0 });
-      if (e.key === "ArrowRight") setLightbox((s) => ({ open: true, index: (s.index + 1) % gallery.length }));
-      if (e.key === "ArrowLeft")  setLightbox((s) => ({ open: true, index: (s.index - 1 + gallery.length) % gallery.length }));
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [lightbox.open, gallery.length]);
-
-  // QUIZ
-  const questions = [
-    { q: "¿Qué prioriza MITURABÁ al narrar?", a: ["El impacto sensacionalista", "La protección y el respeto", "Mostrar rostros y nombres"], correct: 1 },
-    { q: "¿Qué simbolizan las huellas rojas?", a: ["Decoración de escena", "Alegría del carnaval", "Recuerdo del pasado sin crudeza"], correct: 2 },
-    { q: "Cuando un dato no se puede comprobar, ¿qué hacemos?", a: ["Lo publicamos igual", "Lo omitimos y verificamos", "Lo exageramos"], correct: 1 },
+  // --- Decisiones estéticas (mismo UI)
+  const [showEstetica, setShowEstetica] = useState(null);
+  const estetica = [
+    {
+      title: "1. Tono cálido frente a lo lúgubre",
+      text: "Se eligió una atmósfera cálida y emocional, opuesta a la típica oscuridad asociada a los mitos.",
+      quote: "“La calidez era el tono principal, algo contrario a lo lúgubre con lo que solemos imaginar los escenarios…”",
+    },
+    {
+      title: "2. Uso del lenguaje infantil y musical",
+      text: "Se representaron los mitos a través de una canción y una ronda infantil, buscando cercanía y alegría.",
+      quote: "“Decidimos hacerlo mediante una canción infantil, una ronda pegajosa…”",
+    },
+    {
+      title: "3. Simbolismo en lugar de crudeza visual",
+      text: "En vez de mostrar sangre o violencia, se optó por metáforas visuales como las huellas rojas.",
+      quote: "“Mostramos todo mediante el simbolismo: las escenas… donde un hombre deja huellas rojas, metáfora de la masacre…”",
+    },
+    {
+      title: "4. Colores cálidos y estética natural",
+      text: "Los escenarios se mostraron con vegetación, viento y nubes, pero con sensación acogedora.",
+      quote: "“Bajo del Oso no se veía como un lugar lúgubre, sino muy agradable, con mucha vegetación…”",
+    },
+    {
+      title: "5. Agua como símbolo de memoria",
+      text: "La “lluvia” se usa como símbolo de permanencia de la memoria, no de borrado.",
+      quote: "",
+    },
   ];
-  const [answers, setAnswers] = useState(Array(questions.length).fill(null));
 
-  // CRÓNICA (larga, colapsable)
+  // --- CRÓNICA (tu texto largo)
   const cronica = [
     `MITURABÁ: ¿Quién preservará la memoria cuando esta se mezcla con la violencia?`,
     `Iniciamos una búsqueda que creíamos hallada, en las manos, incapaz de colarse entre los minuciosos espacios de los dedos, como quienes dicen: “ya fue” Nosotros conocíamos todo, o eso suponíamos, dado que el semestre pasado tuvimos la fortuna de investigar sobre él, recopilar datos y perspectivas adicionales.`,
@@ -143,53 +116,91 @@ Dibujos que dejan en la puerta de mi casa, que me recuerdan el tiempo que dedica
   ];
   const [showFull, setShowFull] = useState(false);
 
-  // VIDEOS YouTube (hasta 5) — coloca tus IDs reales
+  // --- Galería
+  const gallery = useMemo(() => ([
+    { src: "/img/porton-bananera.jpg", alt: "Entrada bananera" },
+    { src: "/img/nina-lluvia.jpg", alt: "Niña jugando bajo el chorro" },
+    { src: "/img/dibujo-nino-1.jpg", alt: "Dibujo infantil 1" },
+    { src: "/img/arbol-noche.jpg", alt: "Árbol y raíces" },
+    { src: "/img/dibujo-ninos-varios.jpg", alt: "Dibujos infantiles varios" },
+  ]), []);
+
+  const [lightbox, setLightbox] = useState({ open: false, index: 0 });
+  useEffect(() => {
+    const onKey = (e) => {
+      if (!lightbox.open) return;
+      if (e.key === "Escape") setLightbox({ open: false, index: 0 });
+      if (e.key === "ArrowRight") setLightbox((s) => ({ open: true, index: (s.index + 1) % gallery.length }));
+      if (e.key === "ArrowLeft")  setLightbox((s) => ({ open: true, index: (s.index - 1 + gallery.length) % gallery.length }));
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightbox.open, gallery.length]);
+
+  // --- Videos (hasta 5) — pon tus IDs
   const videos = [
-    { id: "4WWohRUM3GE", title: "Teaser MITURABÁ" },
+    { id: "VIDEO_ID_1", title: "Teaser MITURABÁ" },
     { id: "VIDEO_ID_2", title: "Making of 1" },
     { id: "VIDEO_ID_3", title: "Making of 2" },
     { id: "VIDEO_ID_4", title: "Canción de la lluvia" },
     { id: "VIDEO_ID_5", title: "Detrás de cámaras" },
   ];
 
-  // DECISIONES ESTÉTICAS
-  const estetica = [
-    {
-      title: "1. Tono cálido frente a lo lúgubre",
-      text: "Se eligió una atmósfera cálida y emocional, opuesta a la típica oscuridad asociada a los mitos.",
-      quote: "“La calidez era el tono principal, algo contrario a lo lúgubre con lo que solemos imaginar los escenarios…”",
-    },
-    {
-      title: "2. Uso del lenguaje infantil y musical",
-      text: "Se representaron los mitos a través de una canción y una ronda infantil, buscando cercanía y alegría.",
-      quote: "“Decidimos hacerlo mediante una canción infantil, una ronda pegajosa…”",
-    },
-    {
-      title: "3. Simbolismo en lugar de crudeza visual",
-      text: "En vez de mostrar sangre o violencia, se optó por metáforas visuales como las huellas rojas.",
-      quote: "“Mostramos todo mediante el simbolismo: las escenas… donde un hombre deja huellas rojas, metáfora de la masacre…”",
-    },
-    {
-      title: "4. Colores cálidos y estética natural",
-      text: "Los escenarios se mostraron con vegetación, viento y nubes, pero con sensación acogedora.",
-      quote: "“Bajo del Oso no se veía como un lugar lúgubre, sino muy agradable, con mucha vegetación…”",
-    },
-    {
-      title: "5. Recurso poético del agua como símbolo de memoria",
-      text: "La “lluvia” fue convertida en símbolo de permanencia de la memoria, no de borrado.",
-      quote: "",
-    },
+  // --- Audio “ambiente-lluvia.wav” AUTOPLAY al entrar a sección
+  const ritualRef = useRef(null);
+  const ritualAudioRef = useRef(null);
+  const [ritualNeedsGesture, setRitualNeedsGesture] = useState(false);
+
+  useEffect(() => {
+    ritualAudioRef.current = new Audio("/audios/ambiente-lluvia.wav");
+    ritualAudioRef.current.loop = true;
+    ritualAudioRef.current.volume = 0.6;
+
+    const el = ritualRef.current;
+    if (!el) return;
+
+    const io = new IntersectionObserver(
+      async (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting && e.intersectionRatio >= 0.5) {
+            // entra a la vista → intenta reproducir
+            try {
+              await ritualAudioRef.current.play();
+              setRitualNeedsGesture(false);
+            } catch {
+              setRitualNeedsGesture(true);
+            }
+          } else {
+            // sale de la vista → pausa
+            ritualAudioRef.current.pause();
+          }
+        }
+      },
+      { threshold: [0, 0.5, 1] }
+    );
+    io.observe(el);
+    return () => {
+      io.disconnect();
+      ritualAudioRef.current.pause();
+    };
+  }, []);
+
+  const enableRitualAudio = () => {
+    ritualAudioRef.current?.play().then(() => setRitualNeedsGesture(false)).catch(() => setRitualNeedsGesture(true));
+  };
+
+  // --- Quiz
+  const questions = [
+    { q: "¿Qué prioriza MITURABÁ al narrar?", a: ["El impacto sensacionalista", "La protección y el respeto", "Mostrar rostros y nombres"], correct: 1 },
+    { q: "¿Qué simbolizan las huellas rojas?", a: ["Decoración de escena", "Alegría del carnaval", "Recuerdo del pasado sin crudeza"], correct: 2 },
+    { q: "Cuando un dato no se puede comprobar, ¿qué hacemos?", a: ["Lo publicamos igual", "Lo omitimos y verificamos", "Lo exageramos"], correct: 1 },
   ];
+  const [answers, setAnswers] = useState(Array(questions.length).fill(null));
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-slate-900 via-slate-950 to-black text-slate-100 relative overflow-x-hidden">
-      {/* Barra de progreso */}
+      {/* Progreso */}
       <motion.div style={{ width: barWidth }} className="fixed top-0 left-0 h-1 bg-sky-500 z-50" />
-
-      {/* Lluvia visual */}
-      <div className="pointer-events-none fixed inset-0 z-0">
-        <RainLayer intensity={rainIntensity} />
-      </div>
 
       {/* HERO */}
       <section className="relative z-10">
@@ -205,13 +216,12 @@ Dibujos que dejan en la puerta de mi casa, que me recuerdan el tiempo que dedica
               </p>
 
               <div className="mt-6 flex flex-wrap items-center gap-3">
-                <a href="#recorrido" className="inline-flex items-center gap-2 rounded-2xl bg-sky-600/90 hover:bg-sky-500 px-5 py-3 shadow-lg shadow-sky-900/40 transition">
+                <a href="#etica" className="inline-flex items-center gap-2 rounded-2xl bg-sky-600/90 hover:bg-sky-500 px-5 py-3 shadow-lg shadow-sky-900/40 transition">
                   <Droplets className="w-5 h-5" /> Iniciar recorrido
                 </a>
                 <div className="flex items-center gap-2 text-sm text-slate-300">
-                  Volumen/Intensidad:
+                  Volumen fondo:
                   <input
-                    aria-label="Volumen de fondo e intensidad de lluvia visual"
                     type="range"
                     min="0"
                     max="1"
@@ -223,7 +233,6 @@ Dibujos que dejan en la puerta de mi casa, que me recuerdan el tiempo que dedica
                 </div>
               </div>
 
-              {/* Aviso si autoplay es bloqueado */}
               {bgNeedsGesture && (
                 <div className="mt-3">
                   <button onClick={enableBgAudio} className="rounded-xl border border-slate-600 hover:border-slate-400 px-4 py-2 inline-flex items-center gap-2">
@@ -233,24 +242,14 @@ Dibujos que dejan en la puerta de mi casa, que me recuerdan el tiempo que dedica
                 </div>
               )}
             </div>
+
             <HeroCard />
           </div>
         </div>
       </section>
 
-      {/* INTRO – La búsqueda */}
-      <section className="relative z-10 py-10 md:py-16">
-        <div className="mx-auto max-w-3xl px-6 text-slate-300 leading-relaxed">
-          <p>
-            Empezamos convencidos de que conocíamos la historia. Al volver al territorio y contrastar fuentes, entendimos
-            que recordar exige cuidado: revisar, dudar y, a veces, callar. De esa elección nace MITURABÁ: un intento por
-            preservar la memoria sin convertirla en espectáculo.
-          </p>
-        </div>
-      </section>
-
       {/* DECISIONES ÉTICAS */}
-      <section id="recorrido" className="relative z-10 py-16 md:py-24">
+      <section id="etica" className="relative z-10 py-16 md:py-24">
         <div className="mx-auto max-w-6xl px-6">
           <header className="flex items-center gap-3 mb-8">
             <Info className="w-6 h-6 text-sky-400" />
@@ -262,7 +261,7 @@ Dibujos que dejan en la puerta de mi casa, que me recuerdan el tiempo que dedica
                 <button onClick={() => setShowEthics(showEthics === i ? null : i)} className="w-full text-left">
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <p className="text-sky-400 text-sm uppercase tracking-wider">Paso {i + 1}</p>
+                      <p className="text-sky-400 text-sm uppercase tracking-wider">PASO {i + 1}</p>
                       <h3 className="text-xl md:text-2xl font-semibold mt-1">{e.title}</h3>
                     </div>
                     <motion.span initial={{ rotate: 0 }} animate={{ rotate: showEthics === i ? 180 : 0 }}
@@ -281,75 +280,43 @@ Dibujos que dejan en la puerta de mi casa, que me recuerdan el tiempo que dedica
         </div>
       </section>
 
-      {/* DECISIONES ESTÉTICAS */}
+      {/* DECISIONES ESTÉTICAS — MISMO UI */}
       <section id="estetica" className="relative z-10 py-16 md:py-24 bg-gradient-to-b from-slate-950 to-slate-900">
         <div className="mx-auto max-w-6xl px-6">
-          <header className="mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold">Decisiones estéticas</h2>
+          <header className="flex items-center gap-3 mb-8">
+            <Info className="w-6 h-6 text-sky-400" />
+            <h2 className="text-2xl md:text-3xl font-bold">Decisiones estéticas del proyecto</h2>
           </header>
           <ul className="grid md:grid-cols-2 gap-6">
             {estetica.map((d, i) => (
-              <li key={i} className="rounded-2xl p-5 md:p-6 bg-slate-900/60 border border-slate-800 shadow-xl">
-                <h3 className="text-xl font-semibold">{d.title}</h3>
-                <p className="text-slate-300 mt-2">{d.text}</p>
-                {d.quote && (
-                  <blockquote className="mt-3 text-slate-400 border-l-2 border-slate-700 pl-3 italic">
-                    {d.quote}
-                  </blockquote>
-                )}
+              <li key={i} className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-xl">
+                <button onClick={() => setShowEstetica(showEstetica === i ? null : i)} className="w-full text-left">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-sky-400 text-sm uppercase tracking-wider">Punto {i + 1}</p>
+                      <h3 className="text-xl md:text-2xl font-semibold mt-1">{d.title}</h3>
+                    </div>
+                    <motion.span initial={{ rotate: 0 }} animate={{ rotate: showEstetica === i ? 180 : 0 }}
+                      transition={{ type: "spring", stiffness: 200, damping: 15 }} className="text-slate-400">⌄</motion.span>
+                  </div>
+                  <AnimatePresence initial={false}>
+                    {showEstetica === i && (
+                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}>
+                        <p className="mt-3 text-slate-300">{d.text}</p>
+                        {d.quote && (
+                          <blockquote className="mt-3 text-slate-400 border-l-2 border-slate-700 pl-3 italic">{d.quote}</blockquote>
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </button>
               </li>
             ))}
           </ul>
         </div>
       </section>
 
-      {/* MITOS — tarjetas + modal */}
-      <section id="mitos" className="relative z-10 py-16 md:py-24">
-        <div className="mx-auto max-w-6xl px-6">
-          <header className="flex items-center gap-3 mb-8">
-            <Cloud className="w-6 h-6 text-sky-300" />
-            <h2 className="text-2xl md:text-3xl font-bold">Mitos del territorio</h2>
-          </header>
-
-          <div className="grid md:grid-cols-5 gap-4">
-            {myths.map((m, i) => (
-              <motion.button key={i} onClick={() => { setMythOpen(i); playClick(); }}
-                whileHover={{ y: -4 }} className="rounded-2xl p-3 bg-slate-900/60 border border-slate-800 shadow-xl text-left">
-                <div className="aspect-[4/3] rounded-xl overflow-hidden mb-2 bg-slate-800/40 border border-slate-700">
-                  <img src={m.img} alt={m.title} className="w-full h-full object-cover" />
-                </div>
-                <div className="flex items-center gap-2">
-                  <Cloud className="w-4 h-4" /><p className="font-semibold text-sm">{m.title}</p>
-                </div>
-              </motion.button>
-            ))}
-          </div>
-        </div>
-
-        {/* MODAL DE MITO */}
-        <AnimatePresence>
-          {mythOpen !== null && (
-            <motion.div className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4"
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setMythOpen(null)}>
-              <motion.div onClick={(e) => e.stopPropagation()}
-                className="bg-slate-900/90 border border-slate-700 rounded-3xl p-5 max-w-2xl w-full"
-                initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}>
-                <div className="aspect-[16/9] rounded-2xl overflow-hidden mb-4 border border-slate-700">
-                  <img src={myths[mythOpen].img} alt={myths[mythOpen].title} className="w-full h-full object-cover" />
-                </div>
-                <h3 className="text-xl font-semibold mb-2">{myths[mythOpen].title}</h3>
-                <p className="text-slate-300">{myths[mythOpen].body}</p>
-                <div className="mt-4 text-right">
-                  <button onClick={() => setMythOpen(null)} className="rounded-xl px-4 py-2 border border-slate-600 hover:border-slate-400">Cerrar</button>
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </section>
-
-      {/* CRÓNICA — sección larga (colapsable) */}
+      {/* CRÓNICA */}
       <section id="cronica" className="relative z-10 py-16 md:py-24">
         <div className="mx-auto max-w-4xl px-6">
           <header className="flex items-center gap-3 mb-4">
@@ -370,25 +337,31 @@ Dibujos que dejan en la puerta de mi casa, que me recuerdan el tiempo que dedica
         </div>
       </section>
 
-      {/* AUDIO OPCIONAL / RITUAL */}
-      <section id="audio" className="relative z-10 py-16 md:py-24">
+      {/* AUDIO OPCIONAL — AUTOPLAY cuando sección es visible */}
+      <section id="audio" ref={ritualRef} className="relative z-10 py-16 md:py-24">
         <div className="mx-auto max-w-4xl px-6">
           <header className="flex items-center gap-3 mb-4">
             <Music className="w-6 h-6 text-sky-400" />
             <h2 className="text-2xl md:text-3xl font-bold">Lluvia & ritual</h2>
           </header>
           <p className="text-slate-300 mb-4">
-            Reproductor opcional: voces, canciones o ambiente. (No suena de fondo).
+            Este ambiente de lluvia se activa automáticamente al llegar aquí (suena junto al fondo). También puedes controlarlo manualmente:
           </p>
           <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
             <audio controls className="w-full">
               <source src="/audios/ambiente-lluvia.wav" type="audio/wav" />
             </audio>
+            {ritualNeedsGesture && (
+              <button onClick={enableRitualAudio} className="mt-3 rounded-xl border border-slate-600 hover:border-slate-400 px-4 py-2">
+                Activar ritual
+              </button>
+            )}
+            <p className="text-xs text-slate-500 mt-2">Coloca el archivo en <code>/public/audios/ambiente-lluvia.wav</code>.</p>
           </div>
         </div>
       </section>
 
-      {/* GALERÍA (fotos) + VIDEOS (hasta 5) */}
+      {/* GALERÍA + VIDEOS */}
       <section id="galeria" className="relative z-10 py-16 md:py-24 bg-gradient-to-b from-slate-900 to-slate-950">
         <div className="mx-auto max-w-6xl px-6">
           <h2 className="text-2xl md:text-3xl font-bold mb-2">Galería</h2>
@@ -423,9 +396,7 @@ Dibujos que dejan en la puerta de mi casa, que me recuerdan el tiempo que dedica
                 </div>
               ))}
             </div>
-            <p className="text-xs text-slate-500 mt-2">
-              Reemplaza cada <code>VIDEO_ID_n</code> con el ID real de YouTube (lo que va después de <code>watch?v=</code>).
-            </p>
+            <p className="text-xs text-slate-500 mt-2">Reemplaza cada <code>VIDEO_ID_n</code> por tu ID real de YouTube.</p>
           </div>
         </div>
       </section>
@@ -459,7 +430,9 @@ Dibujos que dejan en la puerta de mi casa, que me recuerdan el tiempo que dedica
                     const correct = qq.correct === oi;
                     const show = answers[qi] !== null;
                     return (
-                      <button key={oi} onClick={() => setAnswers((arr) => arr.map((v, idx) => (idx === qi ? oi : v)))}
+                      <button
+                        key={oi}
+                        onClick={() => setAnswers((arr) => arr.map((v, idx) => (idx === qi ? oi : v)))}
                         className={`rounded-xl px-4 py-3 border transition text-left
                           ${selected ? "border-sky-400" : "border-slate-700 hover:border-slate-500"}
                           ${show && correct ? "bg-emerald-600/30" : "" }
@@ -483,7 +456,7 @@ Dibujos que dejan en la puerta de mi casa, que me recuerdan el tiempo que dedica
         <div className="mx-auto max-w-5xl px-6 text-center">
           <h3 className="text-2xl md:text-3xl font-bold">¿Qué historia del territorio no debe borrarse?</h3>
           <p className="mt-3 text-slate-300 max-w-2xl mx-auto">
-            Deja una palabra, un recuerdo o un mito local. Este tejido de voces es MITURABÁ.
+            Este tejido de voces es MITURABÁ.
           </p>
           <p className="text-xs text-slate-500 mt-4">Prototipo – MITURABÁ</p>
         </div>
@@ -525,10 +498,9 @@ function HeroCard() {
 }
 
 function RainLayer({ intensity = 0.4 }) {
-  const drops = Math.round(40 + intensity * 80); // 40..120
+  const drops = Math.round(40 + intensity * 80); // 40..120 (solo visual si luego quieres usar)
   return (
-    <div className="absolute inset-0 overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(56,189,248,0.10),_transparent_60%)]" />
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
       <div className="absolute inset-0">
         {Array.from({ length: drops }).map((_, i) => (
           <span
