@@ -418,7 +418,6 @@ La respuesta es sí. ...`,
             ))}
           </div>
 
-          <p className="text-xs text-slate-500 mt-6">Reemplaza cada <code>VIDEO_ID_n</code> por tu ID real de YouTube. Puedes cambiar títulos y descripciones libremente.</p>
         </div>
       </section>
 
