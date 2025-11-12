@@ -150,7 +150,7 @@ Dibujos que dejan en la puerta de mi casa, que me recuerdan el tiempo que dedica
       location: "Locación 3: Barrio La Esperanza - Corregimiento de Currulao.",
       videos: [
         { id: "5vc-CAt7U1E", desc: "Reto: Mantener la concentración de los niños más pequeños, tiempos nocturnos para realizar el taller." },
-        { id: "BMWBJXo3l7E", desc: "Experiencia: Niños dispuestos, sin miedo a las cámaras y al aprendizaje, fue rápida la grabación." },
+        { id: "BMWBJXo3l7E", desc: "Reto: Materializar la lluvia aún sin ella." },
       ],
     },
   ];
