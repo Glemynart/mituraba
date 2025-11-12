@@ -3,8 +3,9 @@ import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion"
 import { Droplets, Music, Info, Volume2, HelpCircle, Check, X, BookText } from "lucide-react";
 
 /*  MITURABÁ — Versión:
+    - Efecto de lluvia visual (con botón Reproducir/Pausar + control de “intensidad” como volumen del fondo)
     - Audio de fondo AUTOPLAY (truenos-lluvia.mp3) + control volumen (slider)
-    - Audio “ambiente-lluvia.wav” se AUTOPLAY al entrar a la sección “Lluvia & ritual” (con fallback botón si el navegador lo bloquea)
+    - Audio “ambiente-lluvia.wav” se AUTOPLAY al entrar a la sección “Lluvia & ritual” (y se pausa al salir)
     - Intro + Decisiones éticas (acordeones)
     - Decisiones estéticas (mismo estilo que las éticas)
     - Crónica (larga, colapsable)
@@ -18,7 +19,8 @@ export default function MiturabaInteractive() {
   const barWidth = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
 
   // Volumen de fondo + lluvia visual
-  const [rainIntensity, setRainIntensity] = useState(0.4); // 0..1
+  const [rainIntensity, setRainIntensity] = useState(0.4); // 0..1 (también controla volumen del audio de fondo)
+  const [rainVisible, setRainVisible] = useState(true);    // controla SOLO la lluvia visual
 
   // --- Audio de fondo (truenos) AUTOPLAY
   const bgAudioRef = useRef(null);
@@ -37,19 +39,37 @@ export default function MiturabaInteractive() {
   }, [rainIntensity]);
 
   const enableBgAudio = () => {
-    bgAudioRef.current?.play().then(() => setBgNeedsGesture(false)).catch(() => setBgNeedsGesture(true));
+    bgAudioRef.current
+      ?.play()
+      .then(() => setBgNeedsGesture(false))
+      .catch(() => setBgNeedsGesture(true));
   };
 
   // --- Decisiones éticas
   const [showEthics, setShowEthics] = useState(null);
-  const ethics = useMemo(() => [
-    { title: "Proteger a la fuente", text: "Omitimos entrevistas y rostros. En el territorio aún hay actores armados; nuestra prioridad fue no exponer a nadie." },
-    { title: "Verificar antes que narrar", text: "Al cruzar documentos, un dato clave no coincidía. Decidimos no afirmar lo que no podíamos comprobar." },
-    { title: "Cambiar la forma de contar", text: "Dejamos el stop motion por tiempos y viramos del minidocumental a una ficción simbólica: menos literal, más respetuosa." },
-    { title: "No revictimizar el lugar", text: "Evitamos nombres y señalamientos. Bajo del Oso hoy es un sitio tranquilo: preferimos el símbolo (huellas rojas, lluvia) a la crudeza." },
-  ], []);
+  const ethics = useMemo(
+    () => [
+      {
+        title: "Proteger a la fuente",
+        text: "Omitimos entrevistas y rostros. En el territorio aún hay actores armados; nuestra prioridad fue no exponer a nadie.",
+      },
+      {
+        title: "Verificar antes que narrar",
+        text: "Al cruzar documentos, un dato clave no coincidía. Decidimos no afirmar lo que no podíamos comprobar.",
+      },
+      {
+        title: "Cambiar la forma de contar",
+        text: "Dejamos el stop motion por tiempos y viramos del minidocumental a una ficción simbólica: menos literal, más respetuosa.",
+      },
+      {
+        title: "No revictimizar el lugar",
+        text: "Evitamos nombres y señalamientos. Bajo del Oso hoy es un sitio tranquilo: preferimos el símbolo (huellas rojas, lluvia) a la crudeza.",
+      },
+    ],
+    []
+  );
 
-  // --- Decisiones estéticas (mismo UI)
+  // --- Decisiones estéticas
   const [showEstetica, setShowEstetica] = useState(null);
   const estetica = [
     {
@@ -65,7 +85,8 @@ export default function MiturabaInteractive() {
     {
       title: "3. Simbolismo en lugar de crudeza visual",
       text: "En vez de mostrar sangre o violencia, se optó por metáforas visuales como las huellas rojas.",
-      quote: "“Mostramos todo mediante el simbolismo: las escenas… donde un hombre deja huellas rojas, metáfora de la masacre…”",
+      quote:
+        "“Mostramos todo mediante el simbolismo: las escenas… donde un hombre deja huellas rojas, metáfora de la masacre…”",
     },
     {
       title: "4. Colores cálidos y estética natural",
@@ -117,13 +138,16 @@ Dibujos que dejan en la puerta de mi casa, que me recuerdan el tiempo que dedica
   const [showFull, setShowFull] = useState(false);
 
   // --- Galería
-  const gallery = useMemo(() => ([
-    { src: "/img/porton-bananera.jpg", alt: "Entrada bananera" },
-    { src: "/img/nina-lluvia.jpg", alt: "Niña jugando bajo el chorro" },
-    { src: "/img/dibujo-nino-1.jpg", alt: "Dibujo infantil 1" },
-    { src: "/img/arbol-noche.jpg", alt: "Árbol y raíces" },
-    { src: "/img/dibujo-ninos-varios.jpg", alt: "Dibujos infantiles varios" },
-  ]), []);
+  const gallery = useMemo(
+    () => [
+      { src: "/img/porton-bananera.jpg", alt: "Entrada bananera" },
+      { src: "/img/nina-lluvia.jpg", alt: "Niña jugando bajo el chorro" },
+      { src: "/img/dibujo-nino-1.jpg", alt: "Dibujo infantil 1" },
+      { src: "/img/arbol-noche.jpg", alt: "Árbol y raíces" },
+      { src: "/img/dibujo-ninos-varios.jpg", alt: "Dibujos infantiles varios" },
+    ],
+    []
+  );
 
   const [lightbox, setLightbox] = useState({ open: false, index: 0 });
   useEffect(() => {
@@ -131,13 +155,13 @@ Dibujos que dejan en la puerta de mi casa, que me recuerdan el tiempo que dedica
       if (!lightbox.open) return;
       if (e.key === "Escape") setLightbox({ open: false, index: 0 });
       if (e.key === "ArrowRight") setLightbox((s) => ({ open: true, index: (s.index + 1) % gallery.length }));
-      if (e.key === "ArrowLeft")  setLightbox((s) => ({ open: true, index: (s.index - 1 + gallery.length) % gallery.length }));
+      if (e.key === "ArrowLeft") setLightbox((s) => ({ open: true, index: (s.index - 1 + gallery.length) % gallery.length }));
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [lightbox.open, gallery.length]);
 
-  // --- Videos (hasta 5) — pon tus IDs
+  // --- Videos (hasta 5) — pon tus IDs reales
   const videos = [
     { id: "VIDEO_ID_1", title: "Teaser MITURABÁ" },
     { id: "VIDEO_ID_2", title: "Making of 1" },
@@ -163,7 +187,6 @@ Dibujos que dejan en la puerta de mi casa, que me recuerdan el tiempo que dedica
       async (entries) => {
         for (const e of entries) {
           if (e.isIntersecting && e.intersectionRatio >= 0.5) {
-            // entra a la vista → intenta reproducir
             try {
               await ritualAudioRef.current.play();
               setRitualNeedsGesture(false);
@@ -171,13 +194,13 @@ Dibujos que dejan en la puerta de mi casa, que me recuerdan el tiempo que dedica
               setRitualNeedsGesture(true);
             }
           } else {
-            // sale de la vista → pausa
             ritualAudioRef.current.pause();
           }
         }
       },
       { threshold: [0, 0.5, 1] }
     );
+
     io.observe(el);
     return () => {
       io.disconnect();
@@ -186,12 +209,19 @@ Dibujos que dejan en la puerta de mi casa, que me recuerdan el tiempo que dedica
   }, []);
 
   const enableRitualAudio = () => {
-    ritualAudioRef.current?.play().then(() => setRitualNeedsGesture(false)).catch(() => setRitualNeedsGesture(true));
+    ritualAudioRef.current
+      ?.play()
+      .then(() => setRitualNeedsGesture(false))
+      .catch(() => setRitualNeedsGesture(true));
   };
 
   // --- Quiz
   const questions = [
-    { q: "¿Qué prioriza MITURABÁ al narrar?", a: ["El impacto sensacionalista", "La protección y el respeto", "Mostrar rostros y nombres"], correct: 1 },
+    {
+      q: "¿Qué prioriza MITURABÁ al narrar?",
+      a: ["El impacto sensacionalista", "La protección y el respeto", "Mostrar rostros y nombres"],
+      correct: 1,
+    },
     { q: "¿Qué simbolizan las huellas rojas?", a: ["Decoración de escena", "Alegría del carnaval", "Recuerdo del pasado sin crudeza"], correct: 2 },
     { q: "Cuando un dato no se puede comprobar, ¿qué hacemos?", a: ["Lo publicamos igual", "Lo omitimos y verificamos", "Lo exageramos"], correct: 1 },
   ];
@@ -201,6 +231,13 @@ Dibujos que dejan en la puerta de mi casa, que me recuerdan el tiempo que dedica
     <div className="min-h-screen w-full bg-gradient-to-b from-slate-900 via-slate-950 to-black text-slate-100 relative overflow-x-hidden">
       {/* Progreso */}
       <motion.div style={{ width: barWidth }} className="fixed top-0 left-0 h-1 bg-sky-500 z-50" />
+
+      {/* Lluvia visual (condicional) */}
+      {rainVisible && (
+        <div className="pointer-events-none fixed inset-0 z-0">
+          <RainLayer intensity={rainIntensity} />
+        </div>
+      )}
 
       {/* HERO */}
       <section className="relative z-10">
@@ -216,9 +253,23 @@ Dibujos que dejan en la puerta de mi casa, que me recuerdan el tiempo que dedica
               </p>
 
               <div className="mt-6 flex flex-wrap items-center gap-3">
-                <a href="#etica" className="inline-flex items-center gap-2 rounded-2xl bg-sky-600/90 hover:bg-sky-500 px-5 py-3 shadow-lg shadow-sky-900/40 transition">
+                <a
+                  href="#etica"
+                  className="inline-flex items-center gap-2 rounded-2xl bg-sky-600/90 hover:bg-sky-500 px-5 py-3 shadow-lg shadow-sky-900/40 transition"
+                >
                   <Droplets className="w-5 h-5" /> Iniciar recorrido
                 </a>
+
+                {/* Botón para lluvia visual */}
+                <button
+                  onClick={() => setRainVisible((v) => !v)}
+                  className="inline-flex items-center gap-2 rounded-2xl border border-slate-700 hover:border-slate-500 px-4 py-3"
+                  aria-pressed={rainVisible}
+                >
+                  {rainVisible ? "Pausar lluvia" : "Reproducir lluvia"}
+                </button>
+
+                {/* Slider volumen (controla audio de fondo) */}
                 <div className="flex items-center gap-2 text-sm text-slate-300">
                   Volumen fondo:
                   <input
@@ -235,7 +286,10 @@ Dibujos que dejan en la puerta de mi casa, que me recuerdan el tiempo que dedica
 
               {bgNeedsGesture && (
                 <div className="mt-3">
-                  <button onClick={enableBgAudio} className="rounded-xl border border-slate-600 hover:border-slate-400 px-4 py-2 inline-flex items-center gap-2">
+                  <button
+                    onClick={enableBgAudio}
+                    className="rounded-xl border border-slate-600 hover:border-slate-400 px-4 py-2 inline-flex items-center gap-2"
+                  >
                     <Volume2 className="w-4 h-4" /> Activar sonido de fondo
                   </button>
                   <p className="text-xs text-slate-500 mt-1">Algunos navegadores bloquean el audio automático hasta que haces clic.</p>
@@ -264,13 +318,25 @@ Dibujos que dejan en la puerta de mi casa, que me recuerdan el tiempo que dedica
                       <p className="text-sky-400 text-sm uppercase tracking-wider">PASO {i + 1}</p>
                       <h3 className="text-xl md:text-2xl font-semibold mt-1">{e.title}</h3>
                     </div>
-                    <motion.span initial={{ rotate: 0 }} animate={{ rotate: showEthics === i ? 180 : 0 }}
-                      transition={{ type: "spring", stiffness: 200, damping: 15 }} className="text-slate-400">⌄</motion.span>
+                    <motion.span
+                      initial={{ rotate: 0 }}
+                      animate={{ rotate: showEthics === i ? 180 : 0 }}
+                      transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                      className="text-slate-400"
+                    >
+                      ⌄
+                    </motion.span>
                   </div>
                   <AnimatePresence initial={false}>
                     {showEthics === i && (
-                      <motion.p initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
-                        className="mt-3 text-slate-300">{e.text}</motion.p>
+                      <motion.p
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="mt-3 text-slate-300"
+                      >
+                        {e.text}
+                      </motion.p>
                     )}
                   </AnimatePresence>
                 </button>
@@ -280,7 +346,7 @@ Dibujos que dejan en la puerta de mi casa, que me recuerdan el tiempo que dedica
         </div>
       </section>
 
-      {/* DECISIONES ESTÉTICAS — MISMO UI */}
+      {/* DECISIONES ESTÉTICAS */}
       <section id="estetica" className="relative z-10 py-16 md:py-24 bg-gradient-to-b from-slate-950 to-slate-900">
         <div className="mx-auto max-w-6xl px-6">
           <header className="flex items-center gap-3 mb-8">
@@ -296,16 +362,20 @@ Dibujos que dejan en la puerta de mi casa, que me recuerdan el tiempo que dedica
                       <p className="text-sky-400 text-sm uppercase tracking-wider">Punto {i + 1}</p>
                       <h3 className="text-xl md:text-2xl font-semibold mt-1">{d.title}</h3>
                     </div>
-                    <motion.span initial={{ rotate: 0 }} animate={{ rotate: showEstetica === i ? 180 : 0 }}
-                      transition={{ type: "spring", stiffness: 200, damping: 15 }} className="text-slate-400">⌄</motion.span>
+                    <motion.span
+                      initial={{ rotate: 0 }}
+                      animate={{ rotate: showEstetica === i ? 180 : 0 }}
+                      transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                      className="text-slate-400"
+                    >
+                      ⌄
+                    </motion.span>
                   </div>
                   <AnimatePresence initial={false}>
                     {showEstetica === i && (
                       <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}>
                         <p className="mt-3 text-slate-300">{d.text}</p>
-                        {d.quote && (
-                          <blockquote className="mt-3 text-slate-400 border-l-2 border-slate-700 pl-3 italic">{d.quote}</blockquote>
-                        )}
+                        {d.quote && <blockquote className="mt-3 text-slate-400 border-l-2 border-slate-700 pl-3 italic">{d.quote}</blockquote>}
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -325,11 +395,12 @@ Dibujos que dejan en la puerta de mi casa, que me recuerdan el tiempo que dedica
           </header>
           <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
             {(showFull ? cronica : cronica.slice(0, 3)).map((p, i) => (
-              <p key={i} className={`text-slate-200 whitespace-pre-wrap ${i ? "mt-4" : ""}`}>{p}</p>
+              <p key={i} className={`text-slate-200 whitespace-pre-wrap ${i ? "mt-4" : ""}`}>
+                {p}
+              </p>
             ))}
             <div className="mt-6">
-              <button onClick={() => setShowFull(!showFull)}
-                className="rounded-xl border border-slate-600 hover:border-slate-400 px-4 py-2">
+              <button onClick={() => setShowFull(!showFull)} className="rounded-xl border border-slate-600 hover:border-slate-400 px-4 py-2">
                 {showFull ? "Ver menos" : "Leer crónica completa"}
               </button>
             </div>
@@ -356,7 +427,9 @@ Dibujos que dejan en la puerta de mi casa, que me recuerdan el tiempo que dedica
                 Activar ritual
               </button>
             )}
-            <p className="text-xs text-slate-500 mt-2">Coloca el archivo en <code>/public/audios/ambiente-lluvia.wav</code>.</p>
+            <p className="text-xs text-slate-500 mt-2">
+              Coloca el archivo en <code>/public/audios/ambiente-lluvia.wav</code>.
+            </p>
           </div>
         </div>
       </section>
@@ -371,8 +444,11 @@ Dibujos que dejan en la puerta de mi casa, que me recuerdan el tiempo que dedica
 
           <div className="grid md:grid-cols-3 gap-6">
             {gallery.map((g, idx) => (
-              <button key={idx} onClick={() => setLightbox({ open: true, index: idx })}
-                className="aspect-[4/3] rounded-3xl bg-slate-900/60 border border-slate-800 shadow-xl overflow-hidden">
+              <button
+                key={idx}
+                onClick={() => setLightbox({ open: true, index: idx })}
+                className="aspect-[4/3] rounded-3xl bg-slate-900/60 border border-slate-800 shadow-xl overflow-hidden"
+              >
                 <img src={g.src} alt={g.alt} className="w-full h-full object-cover" />
               </button>
             ))}
@@ -396,7 +472,9 @@ Dibujos que dejan en la puerta de mi casa, que me recuerdan el tiempo que dedica
                 </div>
               ))}
             </div>
-            <p className="text-xs text-slate-500 mt-2">Reemplaza cada <code>VIDEO_ID_n</code> por tu ID real de YouTube.</p>
+            <p className="text-xs text-slate-500 mt-2">
+              Reemplaza cada <code>VIDEO_ID_n</code> por tu ID real de YouTube.
+            </p>
           </div>
         </div>
       </section>
@@ -404,11 +482,18 @@ Dibujos que dejan en la puerta de mi casa, que me recuerdan el tiempo que dedica
       {/* LIGHTBOX */}
       <AnimatePresence>
         {lightbox.open && (
-          <motion.div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={() => setLightbox({ open: false, index: 0 })}>
-            <img src={gallery[lightbox.index].src} alt={gallery[lightbox.index].alt}
-              className="max-h-[90vh] max-w-[90vw] rounded-2xl" />
+          <motion.div
+            className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setLightbox({ open: false, index: 0 })}
+          >
+            <img
+              src={gallery[lightbox.index].src}
+              alt={gallery[lightbox.index].alt}
+              className="max-h-[90vh] max-w-[90vw] rounded-2xl"
+            />
           </motion.div>
         )}
       </AnimatePresence>
@@ -423,7 +508,9 @@ Dibujos que dejan en la puerta de mi casa, que me recuerdan el tiempo que dedica
           <div className="space-y-6">
             {questions.map((qq, qi) => (
               <div key={qi} className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
-                <p className="font-semibold mb-3">{qi + 1}. {qq.q}</p>
+                <p className="font-semibold mb-3">
+                  {qi + 1}. {qq.q}
+                </p>
                 <div className="grid md:grid-cols-3 gap-3">
                   {qq.a.map((opt, oi) => {
                     const selected = answers[qi] === oi;
@@ -435,10 +522,11 @@ Dibujos que dejan en la puerta de mi casa, que me recuerdan el tiempo que dedica
                         onClick={() => setAnswers((arr) => arr.map((v, idx) => (idx === qi ? oi : v)))}
                         className={`rounded-xl px-4 py-3 border transition text-left
                           ${selected ? "border-sky-400" : "border-slate-700 hover:border-slate-500"}
-                          ${show && correct ? "bg-emerald-600/30" : "" }
-                          ${show && selected && !correct ? "bg-rose-600/20" : "" }`}>
+                          ${show && correct ? "bg-emerald-600/30" : ""}
+                          ${show && selected && !correct ? "bg-rose-600/20" : ""}`}
+                      >
                         <div className="flex items-center gap-2">
-                          {show ? (correct ? <Check className="w-4 h-4"/> : selected ? <X className="w-4 h-4"/> : null) : null}
+                          {show ? (correct ? <Check className="w-4 h-4" /> : selected ? <X className="w-4 h-4" /> : null) : null}
                           <span>{opt}</span>
                         </div>
                       </button>
@@ -455,9 +543,7 @@ Dibujos que dejan en la puerta de mi casa, que me recuerdan el tiempo que dedica
       <footer className="relative z-10 py-16 md:py-24">
         <div className="mx-auto max-w-5xl px-6 text-center">
           <h3 className="text-2xl md:text-3xl font-bold">¿Qué historia del territorio no debe borrarse?</h3>
-          <p className="mt-3 text-slate-300 max-w-2xl mx-auto">
-            Este tejido de voces es MITURABÁ.
-          </p>
+          <p className="mt-3 text-slate-300 max-w-2xl mx-auto">Este tejido de voces es MITURABÁ.</p>
           <p className="text-xs text-slate-500 mt-4">Prototipo – MITURABÁ</p>
         </div>
       </footer>
@@ -474,8 +560,8 @@ function HeroCard() {
         <div className="relative z-10">
           <h2 className="text-xl font-semibold">Crónica + Infancia + Territorio</h2>
           <p className="text-slate-300 mt-2 text-sm">
-            MITURABÁ es una apuesta por la memoria desde la niñez. En vez de mostrar la violencia de forma cruda,
-            recurre a la calidez, la metáfora y el juego.
+            MITURABÁ es una apuesta por la memoria desde la niñez. En vez de mostrar la violencia de forma cruda, recurre a la calidez, la
+            metáfora y el juego.
           </p>
         </div>
         <div className="absolute inset-0 opacity-30">
@@ -498,7 +584,7 @@ function HeroCard() {
 }
 
 function RainLayer({ intensity = 0.4 }) {
-  const drops = Math.round(40 + intensity * 80); // 40..120 (solo visual si luego quieres usar)
+  const drops = Math.round(40 + intensity * 80); // 40..120
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
       <div className="absolute inset-0">
@@ -519,7 +605,6 @@ function RainLayer({ intensity = 0.4 }) {
           0% { transform: translateY(-20vh); opacity: 0; }
           10% { opacity: 1; }
           100% { transform: translateY(120vh); opacity: 0; }
-        }
       `}</style>
     </div>
   );
