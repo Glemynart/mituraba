@@ -130,7 +130,7 @@ export default function MiturabaInteractive() {
               </h1>
               <p className="mt-6 text-slate-300 max-w-prose">
                 Una crónica interactiva sobre memoria, infancia y territorio en Currulao. Elegimos la calidez y el símbolo
-                para hablar del duelo colectivo sin abrir heridas: la lluvia, el juego y los dibujos como formas de recordar.
+                para hablar del duelo colectivo sin abrir heridas: la lluvia, el juego y los dibujos como formas de recordar lo que fue el proceso de rodaje del teaser "MITURABÁ"
               </p>
 
               <div className="mt-6 flex flex-wrap items-center gap-3">
