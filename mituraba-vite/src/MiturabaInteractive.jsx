@@ -1,20 +1,22 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
-import { Cloud, Droplets, Music, Info, Volume2, Image as ImageIcon, HelpCircle, Check, X } from "lucide-react";
+import { Cloud, Droplets, Music, Info, Volume2, Image as ImageIcon, HelpCircle, Check, X, BookText } from "lucide-react";
 
-/*  MITURABÁ — Versión PRO
-    - Lluvia animada con control de intensidad
+/*  MITURABÁ — Versión con:
+    - Lluvia animada + control de intensidad
     - Intro “La búsqueda”
     - Decisiones éticas (acordeones)
-    - Mitos (5): imagen + modal + audio al abrir
+    - Mitos (usan las MISMAS imágenes que la Galería)
     - Galería con lightbox + navegación por teclado
-    - Muro de memorias (local, animado)
-    - Quiz (3 preguntas con feedback)
+    - Muro de memorias (local)
+    - Quiz
+    - NUEVO: sección “Crónica” (texto largo)
 */
 
 export default function MiturabaInteractive() {
   const { scrollYProgress } = useScroll();
   const barWidth = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
+
   const [rainOn, setRainOn] = useState(false);
   const [rainIntensity, setRainIntensity] = useState(0.4); // 0..1
   const [showEthics, setShowEthics] = useState(null);
@@ -25,117 +27,61 @@ export default function MiturabaInteractive() {
     a.loop = true;
     a.volume = rainIntensity;
     if (rainOn) a.play();
-    else {
-      a.pause();
-      a.currentTime = 0;
-    }
+    else { a.pause(); a.currentTime = 0; }
     return () => a.pause();
   }, [rainOn, rainIntensity]);
 
   // --- TEXTOS
-  const ethics = useMemo(
-    () => [
-      {
-        title: "Proteger a la fuente",
-        text:
-          "Omitimos entrevistas y rostros. En el territorio aún hay actores armados; nuestra prioridad fue no exponer a nadie.",
-      },
-      {
-        title: "Verificar antes que narrar",
-        text:
-          "Al cruzar documentos, un dato clave no coincidía. Decidimos no afirmar lo que no podíamos comprobar.",
-      },
-      {
-        title: "Cambiar la forma de contar",
-        text:
-          "Dejamos el stop motion por tiempos y viramos del minidocumental a una ficción simbólica: menos literal, más respetuosa.",
-      },
-      {
-        title: "No revictimizar el lugar",
-        text:
-          "Evitamos nombres y señalamientos. Bajo del Oso hoy es un sitio tranquilo: preferimos el símbolo (huellas rojas, lluvia) a la crudeza.",
-      },
-    ],
-    []
-  );
+  const ethics = useMemo(() => [
+    { title: "Proteger a la fuente", text: "Omitimos entrevistas y rostros. En el territorio aún hay actores armados; nuestra prioridad fue no exponer a nadie." },
+    { title: "Verificar antes que narrar", text: "Al cruzar documentos, un dato clave no coincidía. Decidimos no afirmar lo que no podíamos comprobar." },
+    { title: "Cambiar la forma de contar", text: "Dejamos el stop motion por tiempos y viramos del minidocumental a una ficción simbólica: menos literal, más respetuosa." },
+    { title: "No revictimizar el lugar", text: "Evitamos nombres y señalamientos. Bajo del Oso hoy es un sitio tranquilo: preferimos el símbolo (huellas rojas, lluvia) a la crudeza." },
+  ], []);
 
-  // IMÁGENES DEL PROYECTO (usa las tuyas)
-  const gallery = [
+  // IMÁGENES DEL PROYECTO (Galería)
+  const gallery = useMemo(() => ([
     { src: "/img/porton-bananera.jpg", alt: "Entrada bananera" },
     { src: "/img/nina-lluvia.jpg", alt: "Niña jugando bajo el chorro" },
     { src: "/img/dibujo-nino-1.jpg", alt: "Dibujo infantil 1" },
     { src: "/img/arbol-noche.jpg", alt: "Árbol y raíces" },
     { src: "/img/dibujo-ninos-varios.jpg", alt: "Dibujos infantiles varios" },
-  ];
+  ]), []);
 
-  // MITOS (5) — cada uno con imagen y texto corto
-  const myths = [
-    {
-      title: "El lugar donde siempre llueve",
-      img: "/img/dibujo-nino-1.jpg",
-      body:
-        "Los niños salpican agua sobre sus dibujos: la memoria se moja, pero no se borra.",
-    },
-    {
-      title: "Historias de miedo (que alegran)",
-      img: "/img/dibujo-ninos-varios.jpg",
-      body:
-        "A los 4–9 años les llaman así. Entre risas y abrazos, el miedo se vuelve compañía.",
-    },
-    {
-      title: "Las huellas que hablan",
-      img: "/img/porton-bananera.jpg",
-      body:
-        "Un hombre baja del bus. Sus botas dejan rastro rojo: recordar sin mostrar la violencia.",
-    },
-    {
-      title: "La guardiana del río",
-      img: "/img/arbol-noche.jpg",
-      body:
-        "Una figura cuida que el agua lleve historias, no olvido. Si la escuchas, pide respeto.",
-    },
-    {
-      title: "La casa del árbol",
-      img: "/img/nina-lluvia.jpg",
-      body:
-        "Debajo del follaje, la ronda infantil suena más fuerte que la tormenta.",
-    },
-  ];
+  // MITOS — usan las MISMAS imágenes de "gallery" (sin duplicar)
+  const myths = useMemo(() => ([
+    { title: "El lugar donde siempre llueve", img: gallery[2].src, body: "Los niños salpican agua sobre sus dibujos: la memoria se moja, pero no se borra." },
+    { title: "Historias de miedo (que alegran)", img: gallery[4].src, body: "A los 4–9 años les llaman así. Entre risas y abrazos, el miedo se vuelve compañía." },
+    { title: "Las huellas que hablan", img: gallery[0].src, body: "Un hombre baja del bus. Sus botas dejan rastro rojo: recordar sin mostrar la violencia." },
+    { title: "La guardiana del río", img: gallery[3].src, body: "Una figura cuida que el agua lleve historias, no olvido. Si la escuchas, pide respeto." },
+    { title: "La casa del árbol", img: gallery[1].src, body: "Debajo del follaje, la ronda infantil suena más fuerte que la tormenta." },
+  ]), [gallery]);
 
-  // Estado para mitos
-  const [mythOpen, setMythOpen] = useState(null); // índice del modal
+  // Estado para mitos (modal)
+  const [mythOpen, setMythOpen] = useState(null);
 
-  // Audio de “clic de mito” (reutilizamos ambiente)
+  // Sonidito al abrir mito
   const clickAudio = useRef(null);
   useEffect(() => {
     clickAudio.current = new Audio("/audios/ambiente-lluvia.wav");
-    clickAudio.current.volume = 0.4;
+    clickAudio.current.volume = 0.35;
   }, []);
-  const playClick = () => {
-    try {
-      if (clickAudio.current) {
-        clickAudio.current.currentTime = 0.1;
-        clickAudio.current.play();
-      }
-    } catch {}
-  };
+  const playClick = () => { try { if (clickAudio.current){ clickAudio.current.currentTime = 0.1; clickAudio.current.play(); } } catch {} };
 
-  // --- LIGHTBOX GALERÍA
+  // LIGHTBOX GALERÍA
   const [lightbox, setLightbox] = useState({ open: false, index: 0 });
   useEffect(() => {
     const onKey = (e) => {
       if (!lightbox.open) return;
       if (e.key === "Escape") setLightbox({ open: false, index: 0 });
-      if (e.key === "ArrowRight")
-        setLightbox((s) => ({ open: true, index: (s.index + 1) % gallery.length }));
-      if (e.key === "ArrowLeft")
-        setLightbox((s) => ({ open: true, index: (s.index - 1 + gallery.length) % gallery.length }));
+      if (e.key === "ArrowRight") setLightbox((s) => ({ open: true, index: (s.index + 1) % gallery.length }));
+      if (e.key === "ArrowLeft")  setLightbox((s) => ({ open: true, index: (s.index - 1 + gallery.length) % gallery.length }));
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [lightbox.open, gallery.length]);
 
-  // --- MURO DE MEMORIAS (local)
+  // MURO DE MEMORIAS (local)
   const [memoryInput, setMemoryInput] = useState("");
   const [memories, setMemories] = useState([]);
   const addMemory = () => {
@@ -144,25 +90,24 @@ export default function MiturabaInteractive() {
     setMemoryInput("");
   };
 
-  // --- QUIZ
+  // QUIZ
   const questions = [
-    {
-      q: "¿Qué prioriza MITURABÁ al narrar?",
-      a: ["El impacto sensacionalista", "La protección y el respeto", "Mostrar rostros y nombres"],
-      correct: 1,
-    },
-    {
-      q: "¿Qué simbolizan las huellas rojas?",
-      a: ["Decoración de escena", "Alegría del carnaval", "Recuerdo del pasado sin crudeza"],
-      correct: 2,
-    },
-    {
-      q: "Cuando un dato no se puede comprobar, ¿qué hacemos?",
-      a: ["Lo publicamos igual", "Lo omitimos y verificamos", "Lo exageramos"],
-      correct: 1,
-    },
+    { q: "¿Qué prioriza MITURABÁ al narrar?", a: ["El impacto sensacionalista", "La protección y el respeto", "Mostrar rostros y nombres"], correct: 1 },
+    { q: "¿Qué simbolizan las huellas rojas?", a: ["Decoración de escena", "Alegría del carnaval", "Recuerdo del pasado sin crudeza"], correct: 2 },
+    { q: "Cuando un dato no se puede comprobar, ¿qué hacemos?", a: ["Lo publicamos igual", "Lo omitimos y verificamos", "Lo exageramos"], correct: 1 },
   ];
   const [answers, setAnswers] = useState(Array(questions.length).fill(null));
+
+  // CRÓNICA (texto largo) — reemplaza estos párrafos por tu texto
+  const cronica = [
+    "¿Quién preservará la memoria cuando esta se mezcla con la violencia? MITURABÁ nace de esa pregunta, y de la decisión de narrar desde la infancia y el territorio.",
+    "Empezamos convencidos de que conocíamos la historia. Al volver al territorio y contrastar fuentes, entendimos que recordar exige cuidado: revisar, dudar y, a veces, callar.",
+    "Optamos por proteger a la fuente y a su hija; verificamos cada dato y elegimos no afirmar lo que no pudimos comprobar.",
+    "Cambiamos de forma: del minidocumental literal a una ficción simbólica. Preferimos la metáfora —huellas rojas, lluvia, ronda— a la crudeza.",
+    "Bajo del Oso hoy es un lugar de viento y vegetación. No nombrarlo fue también una forma de no volver a herirlo.",
+    "Los niños nos compartieron historias que ellos mismos llaman ‘de miedo’, pero entre risas y abrazos. La memoria, mojada por la lluvia, no desaparece: se vuelve canción.",
+  ];
+  const [showFull, setShowFull] = useState(false);
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-slate-900 via-slate-950 to-black text-slate-100 relative overflow-x-hidden">
@@ -181,9 +126,7 @@ export default function MiturabaInteractive() {
             <div>
               <h1 className="text-4xl md:text-6xl font-extrabold leading-tight">
                 MITURABÁ
-                <span className="block text-lg md:text-2xl font-light text-slate-300 mt-3">
-                  La lluvia no borra la memoria
-                </span>
+                <span className="block text-lg md:text-2xl font-light text-slate-300 mt-3">La lluvia no borra la memoria</span>
               </h1>
               <p className="mt-6 text-slate-300 max-w-prose">
                 Una crónica interactiva sobre memoria, infancia y territorio en Currulao. Elegimos la calidez y el símbolo
@@ -192,30 +135,18 @@ export default function MiturabaInteractive() {
 
               <div className="mt-6 flex flex-wrap items-center gap-3">
                 <a href="#recorrido" className="inline-flex items-center gap-2 rounded-2xl bg-sky-600/90 hover:bg-sky-500 px-5 py-3 shadow-lg shadow-sky-900/40 transition">
-                  <Droplets className="w-5 h-5" />
-                  Iniciar recorrido
+                  <Droplets className="w-5 h-5" /> Iniciar recorrido
                 </a>
-
                 <button onClick={() => setRainOn(!rainOn)} className="inline-flex items-center gap-2 rounded-2xl border border-slate-700 hover:border-slate-500 px-4 py-3">
-                  <Volume2 className="w-5 h-5" />
-                  {rainOn ? "Pausar lluvia" : "Reproducir lluvia"}
+                  <Volume2 className="w-5 h-5" /> {rainOn ? "Pausar lluvia" : "Reproducir lluvia"}
                 </button>
-
                 <div className="flex items-center gap-2 text-sm text-slate-300">
                   Intensidad:
-                  <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.05"
-                    value={rainIntensity}
-                    onChange={(e) => setRainIntensity(parseFloat(e.target.value))}
-                    className="w-28 accent-sky-500"
-                  />
+                  <input type="range" min="0" max="1" step="0.05" value={rainIntensity}
+                    onChange={(e) => setRainIntensity(parseFloat(e.target.value))} className="w-28 accent-sky-500" />
                 </div>
               </div>
             </div>
-
             <HeroCard />
           </div>
         </div>
@@ -239,7 +170,6 @@ export default function MiturabaInteractive() {
             <Info className="w-6 h-6 text-sky-400" />
             <h2 className="text-2xl md:text-3xl font-bold">Decisiones éticas del proyecto</h2>
           </header>
-
           <ul className="grid md:grid-cols-2 gap-6">
             {ethics.map((e, i) => (
               <li key={i} className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-xl">
@@ -249,25 +179,13 @@ export default function MiturabaInteractive() {
                       <p className="text-sky-400 text-sm uppercase tracking-wider">Paso {i + 1}</p>
                       <h3 className="text-xl md:text-2xl font-semibold mt-1">{e.title}</h3>
                     </div>
-                    <motion.span
-                      initial={{ rotate: 0 }}
-                      animate={{ rotate: showEthics === i ? 180 : 0 }}
-                      transition={{ type: "spring", stiffness: 200, damping: 15 }}
-                      className="text-slate-400"
-                    >
-                      ⌄
-                    </motion.span>
+                    <motion.span initial={{ rotate: 0 }} animate={{ rotate: showEthics === i ? 180 : 0 }}
+                      transition={{ type: "spring", stiffness: 200, damping: 15 }} className="text-slate-400">⌄</motion.span>
                   </div>
                   <AnimatePresence initial={false}>
                     {showEthics === i && (
-                      <motion.p
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        className="mt-3 text-slate-300"
-                      >
-                        {e.text}
-                      </motion.p>
+                      <motion.p initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+                        className="mt-3 text-slate-300">{e.text}</motion.p>
                     )}
                   </AnimatePresence>
                 </button>
@@ -277,7 +195,7 @@ export default function MiturabaInteractive() {
         </div>
       </section>
 
-      {/* MITOS — tarjetas + modal */}
+      {/* MITOS — usan imágenes de Galería */}
       <section id="mitos" className="relative z-10 py-16 md:py-24 bg-gradient-to-b from-slate-950 to-slate-900">
         <div className="mx-auto max-w-6xl px-6">
           <header className="flex items-center gap-3 mb-8">
@@ -287,18 +205,13 @@ export default function MiturabaInteractive() {
 
           <div className="grid md:grid-cols-5 gap-4">
             {myths.map((m, i) => (
-              <motion.button
-                key={i}
-                onClick={() => { setMythOpen(i); playClick(); }}
-                whileHover={{ y: -4 }}
-                className="rounded-2xl p-3 bg-slate-900/60 border border-slate-800 shadow-xl text-left"
-              >
+              <motion.button key={i} onClick={() => { setMythOpen(i); playClick(); }}
+                whileHover={{ y: -4 }} className="rounded-2xl p-3 bg-slate-900/60 border border-slate-800 shadow-xl text-left">
                 <div className="aspect-[4/3] rounded-xl overflow-hidden mb-2 bg-slate-800/40 border border-slate-700">
                   <img src={m.img} alt={m.title} className="w-full h-full object-cover" />
                 </div>
                 <div className="flex items-center gap-2">
-                  <Cloud className="w-4 h-4" />
-                  <p className="font-semibold text-sm">{m.title}</p>
+                  <Cloud className="w-4 h-4" /><p className="font-semibold text-sm">{m.title}</p>
                 </div>
               </motion.button>
             ))}
@@ -308,25 +221,19 @@ export default function MiturabaInteractive() {
         {/* MODAL DE MITO */}
         <AnimatePresence>
           {mythOpen !== null && (
-            <motion.div
-              className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4"
+            <motion.div className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setMythOpen(null)}
-            >
-              <motion.div
-                onClick={(e) => e.stopPropagation()}
+              onClick={() => setMythOpen(null)}>
+              <motion.div onClick={(e) => e.stopPropagation()}
                 className="bg-slate-900/90 border border-slate-700 rounded-3xl p-5 max-w-2xl w-full"
-                initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-              >
+                initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}>
                 <div className="aspect-[16/9] rounded-2xl overflow-hidden mb-4 border border-slate-700">
                   <img src={myths[mythOpen].img} alt={myths[mythOpen].title} className="w-full h-full object-cover" />
                 </div>
                 <h3 className="text-xl font-semibold mb-2">{myths[mythOpen].title}</h3>
                 <p className="text-slate-300">{myths[mythOpen].body}</p>
                 <div className="mt-4 text-right">
-                  <button onClick={() => setMythOpen(null)} className="rounded-xl px-4 py-2 border border-slate-600 hover:border-slate-400">
-                    Cerrar
-                  </button>
+                  <button onClick={() => setMythOpen(null)} className="rounded-xl px-4 py-2 border border-slate-600 hover:border-slate-400">Cerrar</button>
                 </div>
               </motion.div>
             </motion.div>
@@ -349,9 +256,7 @@ export default function MiturabaInteractive() {
             <audio controls className="w-full">
               <source src="/audios/ambiente-lluvia.wav" type="audio/wav" />
             </audio>
-            <p className="text-xs text-slate-400 mt-3">
-              Consejo: puedes sustituir este audio por voces o una canción propia (colócala en <code>/public/audios/</code>).
-            </p>
+            <p className="text-xs text-slate-400 mt-3">Sustituye este audio por voces o canción propia (colócala en <code>/public/audios/</code>).</p>
           </div>
         </div>
       </section>
@@ -366,7 +271,8 @@ export default function MiturabaInteractive() {
 
           <div className="grid md:grid-cols-3 gap-6">
             {gallery.map((g, idx) => (
-              <button key={idx} onClick={() => setLightbox({ open: true, index: idx })} className="aspect-[4/3] rounded-3xl bg-slate-900/60 border border-slate-800 shadow-xl overflow-hidden">
+              <button key={idx} onClick={() => setLightbox({ open: true, index: idx })}
+                className="aspect-[4/3] rounded-3xl bg-slate-900/60 border border-slate-800 shadow-xl overflow-hidden">
                 <img src={g.src} alt={g.alt} className="w-full h-full object-cover" />
               </button>
             ))}
@@ -379,13 +285,9 @@ export default function MiturabaInteractive() {
         {lightbox.open && (
           <motion.div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={() => setLightbox({ open: false, index: 0 })}
-          >
-            <img
-              src={gallery[lightbox.index].src}
-              alt={gallery[lightbox.index].alt}
-              className="max-h-[90vh] max-w-[90vw] rounded-2xl"
-            />
+            onClick={() => setLightbox({ open: false, index: 0 })}>
+            <img src={gallery[lightbox.index].src} alt={gallery[lightbox.index].alt}
+              className="max-h-[90vh] max-w-[90vw] rounded-2xl" />
           </motion.div>
         )}
       </AnimatePresence>
@@ -399,27 +301,16 @@ export default function MiturabaInteractive() {
           </header>
           <div className="grid md:grid-cols-3 gap-4">
             <div className="md:col-span-1">
-              <input
-                value={memoryInput}
-                onChange={(e) => setMemoryInput(e.target.value)}
-                placeholder="Escribe una palabra/recuerdo…"
-                className="w-full rounded-xl bg-slate-900/60 border border-slate-700 px-4 py-3 outline-none focus:border-slate-400"
-              />
+              <input value={memoryInput} onChange={(e) => setMemoryInput(e.target.value)}
+                placeholder="Escribe una palabra/recuerdo…" className="w-full rounded-xl bg-slate-900/60 border border-slate-700 px-4 py-3 outline-none focus:border-slate-400" />
               <button onClick={addMemory} className="mt-2 w-full rounded-xl bg-sky-600/90 hover:bg-sky-500 px-4 py-3">Agregar</button>
               <p className="text-xs text-slate-400 mt-2">*Esto se guarda solo en esta sesión (sin backend).</p>
             </div>
             <div className="md:col-span-2 grid grid-cols-2 md:grid-cols-3 gap-3">
               <AnimatePresence>
                 {memories.map((m) => (
-                  <motion.div
-                    key={m.t}
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -6 }}
-                    className="rounded-xl border border-slate-700 bg-slate-900/60 p-3 text-sm"
-                  >
-                    {m.text}
-                  </motion.div>
+                  <motion.div key={m.t} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
+                    className="rounded-xl border border-slate-700 bg-slate-900/60 p-3 text-sm">{m.text}</motion.div>
                 ))}
               </AnimatePresence>
             </div>
@@ -434,7 +325,6 @@ export default function MiturabaInteractive() {
             <HelpCircle className="w-6 h-6 text-sky-400" />
             <h2 className="text-2xl md:text-3xl font-bold">Quiz rápido</h2>
           </header>
-
           <div className="space-y-6">
             {questions.map((qq, qi) => (
               <div key={qi} className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
@@ -445,15 +335,11 @@ export default function MiturabaInteractive() {
                     const correct = qq.correct === oi;
                     const show = answers[qi] !== null;
                     return (
-                      <button
-                        key={oi}
-                        onClick={() => setAnswers((arr) => arr.map((v, idx) => (idx === qi ? oi : v)))}
+                      <button key={oi} onClick={() => setAnswers((arr) => arr.map((v, idx) => (idx === qi ? oi : v)))}
                         className={`rounded-xl px-4 py-3 border transition text-left
                           ${selected ? "border-sky-400" : "border-slate-700 hover:border-slate-500"}
                           ${show && correct ? "bg-emerald-600/30" : "" }
-                          ${show && selected && !correct ? "bg-rose-600/20" : "" }
-                        `}
-                      >
+                          ${show && selected && !correct ? "bg-rose-600/20" : "" }`}>
                         <div className="flex items-center gap-2">
                           {show ? (correct ? <Check className="w-4 h-4"/> : selected ? <X className="w-4 h-4"/> : null) : null}
                           <span>{opt}</span>
@@ -465,6 +351,37 @@ export default function MiturabaInteractive() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* NUEVO — CRÓNICA COMPLETA */}
+      <section id="cronica" className="relative z-10 py-16 md:py-24">
+        <div className="mx-auto max-w-4xl px-6">
+          <header className="flex items-center gap-3 mb-4">
+            <BookText className="w-6 h-6 text-sky-400" />
+            <h2 className="text-2xl md:text-3xl font-bold">Crónica</h2>
+          </header>
+
+          {/* Intro corta siempre visible */}
+          <p className="text-slate-300 mb-4">
+            Un relato sobre memoria, infancia y territorio. Aquí puedes leer la crónica completa del proyecto.
+          </p>
+
+          {/* Cuerpo extensible */}
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
+            {(showFull ? cronica : cronica.slice(0, 2)).map((p, i) => (
+              <p key={i} className={`text-slate-200 ${i ? "mt-4" : ""}`}>{p}</p>
+            ))}
+
+            <div className="mt-6">
+              <button onClick={() => setShowFull(!showFull)}
+                className="rounded-xl border border-slate-600 hover:border-slate-400 px-4 py-2">
+                {showFull ? "Ver menos" : "Leer crónica completa"}
+              </button>
+            </div>
+          </div>
+
+          {/* Tip: si prefieres un PDF/Doc embebido, incrústalo aquí con <iframe src="URL" /> */}
         </div>
       </section>
 
