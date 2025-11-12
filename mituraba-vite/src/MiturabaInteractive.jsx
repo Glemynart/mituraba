@@ -3,49 +3,41 @@ import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion"
 import { Cloud, Droplets, Music, Info, Volume2, Image as ImageIcon, HelpCircle, Check, X, BookText } from "lucide-react";
 
 /*  MITURABÁ — Versión con:
-    - Lluvia animada + control de intensidad (visual)
+    - Lluvia animada + control de intensidad (visual/volumen)
     - Intro “La búsqueda”
     - Decisiones éticas (acordeones)
+    - Decisiones estéticas (nuevo bloque)
     - Mitos (usan las MISMAS imágenes que la Galería)
+    - Sección “Crónica” (larga, colapsable)  ← NUEVA UBICACIÓN
+    - Audio opcional (ambiente-lluvia.wav)
     - Galería con lightbox + navegación por teclado
-    - Videos (YouTube embebido)
-    - Muro de memorias (local)
+    - Videos YouTube (hasta 5)
     - Quiz
-    - Sección “Crónica” (texto largo)
     - Audio de fondo AUTOPLAY (truenos-lluvia.mp3) + aviso si el navegador bloquea
-    - Audio anterior como reproductor opcional (ambiente-lluvia.wav)
-    - NUEVO: “Decisiones estéticas”
+    - ¡Eliminado “Muro de memorias”!
 */
 
 export default function MiturabaInteractive() {
   const { scrollYProgress } = useScroll();
   const barWidth = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
 
-  // Visual lluvia
+  // Visual lluvia + volumen de fondo
   const [rainIntensity, setRainIntensity] = useState(0.4); // 0..1
 
-  // Audio de fondo (AUTOPLAY)
+  // Audio de fondo (AUTOPLAY) — truenos-lluvia.mp3
   const bgAudioRef = useRef(null);
   const [bgNeedsGesture, setBgNeedsGesture] = useState(false);
 
   useEffect(() => {
-    // Crear una sola vez
     if (!bgAudioRef.current) {
       const a = new Audio("/audios/truenos-lluvia.mp3");
       a.loop = true;
       a.volume = Math.min(1, Math.max(0, rainIntensity));
       bgAudioRef.current = a;
-      // Intento de autoplay
       a.play().catch(() => setBgNeedsGesture(true));
     } else {
-      // Actualizar volumen si ya existe
       bgAudioRef.current.volume = Math.min(1, Math.max(0, rainIntensity));
     }
-    return () => {
-      // No parar en unmount para que no corte al navegar secciones;
-      // si deseas pararlo en navegación de página, descomenta:
-      // bgAudioRef.current?.pause();
-    };
   }, [rainIntensity]);
 
   const enableBgAudio = () => {
@@ -85,7 +77,7 @@ export default function MiturabaInteractive() {
   // Estado para mitos (modal)
   const [mythOpen, setMythOpen] = useState(null);
 
-  // Sonidito al abrir mito (reutiliza ambiente-lluvia solo como feedback corto)
+  // Sonidito al abrir mito (feedback corto, opcional)
   const clickAudio = useRef(null);
   useEffect(() => {
     clickAudio.current = new Audio("/audios/ambiente-lluvia.wav");
@@ -106,15 +98,6 @@ export default function MiturabaInteractive() {
     return () => window.removeEventListener("keydown", onKey);
   }, [lightbox.open, gallery.length]);
 
-  // MURO DE MEMORIAS (local)
-  const [memoryInput, setMemoryInput] = useState("");
-  const [memories, setMemories] = useState([]);
-  const addMemory = () => {
-    if (!memoryInput.trim()) return;
-    setMemories((m) => [{ text: memoryInput.trim(), t: Date.now() }, ...m].slice(0, 20));
-    setMemoryInput("");
-  };
-
   // QUIZ
   const questions = [
     { q: "¿Qué prioriza MITURABÁ al narrar?", a: ["El impacto sensacionalista", "La protección y el respeto", "Mostrar rostros y nombres"], correct: 1 },
@@ -123,21 +106,50 @@ export default function MiturabaInteractive() {
   ];
   const [answers, setAnswers] = useState(Array(questions.length).fill(null));
 
-  // CRÓNICA (texto largo) — reemplaza estos párrafos por tu texto si quieres
+  // CRÓNICA (larga, colapsable)
   const cronica = [
-    "¿Quién preservará la memoria cuando esta se mezcla con la violencia? MITURABÁ nace de esa pregunta, y de la decisión de narrar desde la infancia y el territorio.",
-    "Empezamos convencidos de que conocíamos la historia. Al volver al territorio y contrastar fuentes, entendimos que recordar exige cuidado: revisar, dudar y, a veces, callar.",
-    "Optamos por proteger a la fuente y a su hija; verificamos cada dato y elegimos no afirmar lo que no pudimos comprobar.",
-    "Cambiamos de forma: del minidocumental literal a una ficción simbólica. Preferimos la metáfora —huellas rojas, lluvia, ronda— a la crudeza.",
-    "Bajo del Oso hoy es un lugar de viento y vegetación. No nombrarlo fue también una forma de no volver a herirlo.",
-    "Los niños nos compartieron historias que ellos mismos llaman ‘de miedo’, pero entre risas y abrazos. La memoria, mojada por la lluvia, no desaparece: se vuelve canción.",
+    `MITURABÁ: ¿Quién preservará la memoria cuando esta se mezcla con la violencia?`,
+    `Iniciamos una búsqueda que creíamos hallada, en las manos, incapaz de colarse entre los minuciosos espacios de los dedos, como quienes dicen: “ya fue” Nosotros conocíamos todo, o eso suponíamos, dado que el semestre pasado tuvimos la fortuna de investigar sobre él, recopilar datos y perspectivas adicionales.`,
+    `¿El proyecto se mantuvo igual hasta el final?
+Solo lo que se mantiene igual es porque no tiene fondo ni tela de dónde cortar. Esa es nuestra respuesta.`,
+    `Inicialmente partimos de una reportería en la que la fuente principal nos contaba cómo su mejor amigo de infancia perdió la vida en la masacre de Bajo del Oso de 1995. De allí surgió el mito de que, por esa masacre, ese lugar se mantiene oscuro y con mucha lluvia. La idea inicial era narrarlo mediante la técnica de animación stop motion, junto con una entrevista a la hija de la fuente.`,
+    `¿Cómo terminó todo?
+Como primera decisión ética, preferimos proteger a la fuente y a su hija, dado que en el sector de Currulao aún existen agentes armados. Por lo tanto, se decidió omitir la entrevista y buscar una manera distinta de narrar.`,
+    `Desde lo estético, tuvimos que dejar de lado la animación. Si bien era nuestro sueño utilizarla, no contábamos con el tiempo necesario para ello —a nivel de la escultura de los personajes y la animación en los programas—, así que tuvimos que sumergirnos en el terreno real:
+¿Cómo se ve Bajo del Oso? ¿Y quiénes contarán los mitos?`,
+    `Al investigar, nuestra primera opción fue realizar un mini documental. Sin embargo, al revisar documentos oficiales nos percatamos de que el niño mencionado en la anécdota de la fuente no figuraba entre las 24 víctimas de la masacre, lo que nos llevó a tomar nuestra segunda decisión ética.`,
+    `¿Contar o no contar algo que pudo —o no— ser verdad?
+Como grupo decidimos guardar la historia para otra ocasión, cuando dispongamos de más tiempo para pulirla e investigar más al respecto. No queríamos reabrir heridas pasadas en la comunidad con historias cuya veracidad no podíamos confirmar más allá de un testimonio.`,
+    `Proteger las memorias de la comunidad y de sus víctimas fue prioridad. La nueva tarea era no solo mostrar el mito, sino también una masacre igual de dolorosa que la muerte de un amigo de infancia.`,
+    `Por otro lado, el mito al que bautizamos “El lugar donde siempre llueve” era una parte esencial, quizás lo que haría más simbólico —y menos traumático— revivir un hecho tan doloroso para la región. Con esa intención, decidimos realizar nuestra investigación con niños, la parte más frágil, creativa y cercana a la magia con la que se adorna la realidad.`,
+    `Como investigadora, comencé con mi público más cercano: mis vecinos del barrio La Esperanza, en el corregimiento de Currulao. Niños de cuatro a nueve años con quienes jugué y compartí. Al cabo de unos días, terminé preguntándoles si sabían lo que eran los mitos y las leyendas, asumiendo que responderían que sí.`,
+    `En este caso, la respuesta fue no. Los niños no sabían qué eran los mitos ni las leyendas. Por el contrario, se mostraron muy emocionados; ellos las llamaban “historias de miedo”. Comencé con lo más básico: leerles las historias que me pedían y desconocían: La Llorona, La Patasola, La Bruja. Lo curioso fue que, en vez de miedo, les causaban mucha alegría. Abrazos entre todos para no sentir terror y risas nerviosas acompañaron cada relato. La calidez era el tono principal, algo contrario a lo lúgubre con lo que solemos imaginar los escenarios donde se cuentan los mitos y las leyendas.`,
+    `Fue entonces cuando comprendimos la necesidad de que las nuevas generaciones conozcan la memoria del territorio, y que esta no sea un asunto trivial u olvidado. Desde este enfoque nació MITURABÁ, una apuesta por la memoria de la región y su reivindicación mediante mitos contados a los niños del territorio, en este caso, del corregimiento de Currulao.`,
+    `Desde lo estético, la primera pregunta fue: ¿Cómo mostrar y enseñar el mito?
+Decidimos hacerlo mediante una canción infantil, una ronda pegajosa, algo que mostrara otra cara: la de los niños que también narran su territorio. La segunda decisión fue abandonar la ambigüedad de abordarlo desde el terror, y hacerlo desde la calidez y la emoción que sienten los niños al escuchar estas historias, a través de un ritual que ellos llaman “la lluvia”.`,
+    `Exploramos los espacios y jugamos con ellos. Utilizamos colores cálidos, dibujos infantiles y composiciones cuidadas, respetando la intención narrativa sin que pareciera un trabajo prefabricado o sensacionalista.`,
+    `Lo mismo ocurrió con Bajo del Oso y, posteriormente, con la locación de Currulao, donde grabamos lo simbólico de la masacre. Allí tuvimos que tomar varias decisiones éticas y estéticas: ¿Ser crudos o simbólicos? ¿Decir el nombre de la finca o no?`,
+    `A esas alturas ya comprendimos que no era un mini documental, sino un proyecto de ficción, lo que implicó escribir el guion desde cero. No uno, ni dos, sino cuatro guiones. Finalmente, el formato elegido —dado el poco tiempo que teníamos— fue el teaser: imágenes cortas pero profundas.`,
+    `Optamos por no mostrar el nombre de la finca, pues no queríamos revictimizar el lugar ni asociarlo con una carga negativa. Desde lo visual, Bajo del Oso no se veía como un lugar lúgubre, sino muy agradable, con mucha vegetación, las casas se mezclaban con la carretera, muy oscuro eso sí, habían nubes de lluvia y mucho viento, pero un ambiente cálido, por ello tampoco queríamos poner de nuevo el concepto de “Violencia” sobre una vereda que hoy en día es sumamente tranquila. Por esta razón en lugar de utilizar gritos, exceso de sangre o tonalidades oscuras y frías, elegimos mostrar todo mediante el simbolismo, las escenas que grabamos en Currulao en dónde  un hombre se baja de un bus y camina con botas que dejan huellas rojas, esto como una metafora de la masacre cometida por las FARC, quienes obligaron a los trabajadores bananeros a salir para finalmente fusilarlos y degollarlos.`,
+    `También evitamos primeros planos de los rostros de los niños, dado que no deja de ser un tema sensible.`,
+    `¿Se logró terminar el proyecto?
+La respuesta es sí. Mi persona, Mariana Moncada González, junto con el director de fotografía Alexis David Quintero Sepúlveda, logramos grabar todas las escenas en dos días. La escena más retadora fue lograr la lluvia. Inicialmente queríamos que los niños jugaran mientras llovía, pero esta nunca llegó.`,
+    `Así que, desde lo estético, optamos por una escena en la que los niños salpican con agua sus dibujos, como simbolismo de que la memoria no se puede borrar con la lluvia: esta sigue más viva que nunca.`,
+    `Ahora que hemos culminado el proyecto, cada vez que salgo de mi casa me encuentro con un:
+-“Mariana, ¿podemos cantar la canción de la lluvia?”-
+Dibujos que dejan en la puerta de mi casa, que me recuerdan el tiempo que dedicamos a tejer una historia sensible, significativa y profunda.`,
+    `Como realizadores, nos llevamos experiencias muy amenas. Aprendimos a narrar no desde el “nosotros”, no desde la revictimización, sino desde el respeto por los imaginarios colectivos y su manera de afrontar el duelo del conflicto armado mediante la construcción de mitos y leyendas.`,
+    `Hoy nos honra mostrar este producto, ser parte de un nuevo tejido de memoria desde la niñez del Corregimiento de Currulao.`,
   ];
   const [showFull, setShowFull] = useState(false);
 
-  // VIDEOS (YouTube) — reemplaza los IDs por los tuyos
+  // VIDEOS YouTube (hasta 5) — coloca tus IDs reales
   const videos = [
     { id: "VIDEO_ID_1", title: "Teaser MITURABÁ" },
-    // { id: "VIDEO_ID_2", title: "Making of" },
+    { id: "VIDEO_ID_2", title: "Making of 1" },
+    { id: "VIDEO_ID_3", title: "Making of 2" },
+    { id: "VIDEO_ID_4", title: "Canción de la lluvia" },
+    { id: "VIDEO_ID_5", title: "Detrás de cámaras" },
   ];
 
   // DECISIONES ESTÉTICAS
@@ -196,8 +208,6 @@ export default function MiturabaInteractive() {
                 <a href="#recorrido" className="inline-flex items-center gap-2 rounded-2xl bg-sky-600/90 hover:bg-sky-500 px-5 py-3 shadow-lg shadow-sky-900/40 transition">
                   <Droplets className="w-5 h-5" /> Iniciar recorrido
                 </a>
-
-                {/* Control volumen fondo = misma perilla de intensidad */}
                 <div className="flex items-center gap-2 text-sm text-slate-300">
                   Volumen/Intensidad:
                   <input
@@ -303,18 +313,13 @@ export default function MiturabaInteractive() {
 
           <div className="grid md:grid-cols-5 gap-4">
             {myths.map((m, i) => (
-              <motion.button
-                key={i}
-                onClick={() => { setMythOpen(i); playClick(); }}
-                whileHover={{ y: -4 }}
-                className="rounded-2xl p-3 bg-slate-900/60 border border-slate-800 shadow-xl text-left"
-              >
+              <motion.button key={i} onClick={() => { setMythOpen(i); playClick(); }}
+                whileHover={{ y: -4 }} className="rounded-2xl p-3 bg-slate-900/60 border border-slate-800 shadow-xl text-left">
                 <div className="aspect-[4/3] rounded-xl overflow-hidden mb-2 bg-slate-800/40 border border-slate-700">
                   <img src={m.img} alt={m.title} className="w-full h-full object-cover" />
                 </div>
                 <div className="flex items-center gap-2">
-                  <Cloud className="w-4 h-4" />
-                  <p className="font-semibold text-sm">{m.title}</p>
+                  <Cloud className="w-4 h-4" /><p className="font-semibold text-sm">{m.title}</p>
                 </div>
               </motion.button>
             ))}
@@ -324,25 +329,19 @@ export default function MiturabaInteractive() {
         {/* MODAL DE MITO */}
         <AnimatePresence>
           {mythOpen !== null && (
-            <motion.div
-              className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4"
+            <motion.div className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setMythOpen(null)}
-            >
-              <motion.div
-                onClick={(e) => e.stopPropagation()}
+              onClick={() => setMythOpen(null)}>
+              <motion.div onClick={(e) => e.stopPropagation()}
                 className="bg-slate-900/90 border border-slate-700 rounded-3xl p-5 max-w-2xl w-full"
-                initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-              >
+                initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}>
                 <div className="aspect-[16/9] rounded-2xl overflow-hidden mb-4 border border-slate-700">
                   <img src={myths[mythOpen].img} alt={myths[mythOpen].title} className="w-full h-full object-cover" />
                 </div>
                 <h3 className="text-xl font-semibold mb-2">{myths[mythOpen].title}</h3>
                 <p className="text-slate-300">{myths[mythOpen].body}</p>
                 <div className="mt-4 text-right">
-                  <button onClick={() => setMythOpen(null)} className="rounded-xl px-4 py-2 border border-slate-600 hover:border-slate-400">
-                    Cerrar
-                  </button>
+                  <button onClick={() => setMythOpen(null)} className="rounded-xl px-4 py-2 border border-slate-600 hover:border-slate-400">Cerrar</button>
                 </div>
               </motion.div>
             </motion.div>
@@ -350,7 +349,28 @@ export default function MiturabaInteractive() {
         </AnimatePresence>
       </section>
 
-      {/* AUDIO OPCIONAL / RITUAL (NO fondo) */}
+      {/* CRÓNICA — sección larga (colapsable) */}
+      <section id="cronica" className="relative z-10 py-16 md:py-24">
+        <div className="mx-auto max-w-4xl px-6">
+          <header className="flex items-center gap-3 mb-4">
+            <BookText className="w-6 h-6 text-sky-400" />
+            <h2 className="text-2xl md:text-3xl font-bold">Crónica</h2>
+          </header>
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
+            {(showFull ? cronica : cronica.slice(0, 3)).map((p, i) => (
+              <p key={i} className={`text-slate-200 whitespace-pre-wrap ${i ? "mt-4" : ""}`}>{p}</p>
+            ))}
+            <div className="mt-6">
+              <button onClick={() => setShowFull(!showFull)}
+                className="rounded-xl border border-slate-600 hover:border-slate-400 px-4 py-2">
+                {showFull ? "Ver menos" : "Leer crónica completa"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* AUDIO OPCIONAL / RITUAL */}
       <section id="audio" className="relative z-10 py-16 md:py-24">
         <div className="mx-auto max-w-4xl px-6">
           <header className="flex items-center gap-3 mb-4">
@@ -368,7 +388,7 @@ export default function MiturabaInteractive() {
         </div>
       </section>
 
-      {/* GALERÍA (fotos) */}
+      {/* GALERÍA (fotos) + VIDEOS (hasta 5) */}
       <section id="galeria" className="relative z-10 py-16 md:py-24 bg-gradient-to-b from-slate-900 to-slate-950">
         <div className="mx-auto max-w-6xl px-6">
           <h2 className="text-2xl md:text-3xl font-bold mb-2">Galería</h2>
@@ -385,28 +405,28 @@ export default function MiturabaInteractive() {
             ))}
           </div>
 
-          {/* NUEVO: Videos (YouTube) */}
-          {!!videos.length && (
-            <div className="mt-12">
-              <h3 className="text-xl md:text-2xl font-semibold mb-4">Videos</h3>
-              <div className="grid md:grid-cols-2 gap-6">
-                {videos.map((v, i) => (
-                  <div key={i} className="aspect-video rounded-2xl overflow-hidden border border-slate-800 bg-black">
-                    <iframe
-                      className="w-full h-full"
-                      src={`https://www.youtube.com/embed/${v.id}`}
-                      title={v.title}
-                      frameBorder="0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                      referrerPolicy="strict-origin-when-cross-origin"
-                      allowFullScreen
-                    />
-                  </div>
-                ))}
-              </div>
-              <p className="text-xs text-slate-500 mt-2">Reemplaza <code>VIDEO_ID_1</code> con el ID real de YouTube.</p>
+          {/* VIDEOS (hasta 5) */}
+          <div className="mt-12">
+            <h3 className="text-xl md:text-2xl font-semibold mb-4">Videos</h3>
+            <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {videos.slice(0, 5).map((v, i) => (
+                <div key={i} className="aspect-video rounded-2xl overflow-hidden border border-slate-800 bg-black">
+                  <iframe
+                    className="w-full h-full"
+                    src={`https://www.youtube.com/embed/${v.id}`}
+                    title={v.title}
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    allowFullScreen
+                  />
+                </div>
+              ))}
             </div>
-          )}
+            <p className="text-xs text-slate-500 mt-2">
+              Reemplaza cada <code>VIDEO_ID_n</code> con el ID real de YouTube (lo que va después de <code>watch?v=</code>).
+            </p>
+          </div>
         </div>
       </section>
 
@@ -422,43 +442,6 @@ export default function MiturabaInteractive() {
         )}
       </AnimatePresence>
 
-      {/* MURO DE MEMORIAS (local) */}
-      <section id="memorias" className="relative z-10 py-16 md:py-24">
-        <div className="mx-auto max-w-5xl px-6">
-          <header className="flex items-center gap-3 mb-4">
-            <ImageIcon className="w-6 h-6 text-sky-400" />
-            <h2 className="text-2xl md:text-3xl font-bold">Muro de memorias</h2>
-          </header>
-          <div className="grid md:grid-cols-3 gap-4">
-            <div className="md:col-span-1">
-              <input
-                value={memoryInput}
-                onChange={(e) => setMemoryInput(e.target.value)}
-                placeholder="Escribe una palabra/recuerdo…"
-                className="w-full rounded-xl bg-slate-900/60 border border-slate-700 px-4 py-3 outline-none focus:border-slate-400"
-              />
-              <button onClick={addMemory} className="mt-2 w-full rounded-xl bg-sky-600/90 hover:bg-sky-500 px-4 py-3">Agregar</button>
-              <p className="text-xs text-slate-400 mt-2">*Esto se guarda solo en esta sesión (sin backend).</p>
-            </div>
-            <div className="md:col-span-2 grid grid-cols-2 md:grid-cols-3 gap-3">
-              <AnimatePresence>
-                {memories.map((m) => (
-                  <motion.div
-                    key={m.t}
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -6 }}
-                    className="rounded-xl border border-slate-700 bg-slate-900/60 p-3 text-sm"
-                  >
-                    {m.text}
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* QUIZ */}
       <section id="quiz" className="relative z-10 py-16 md:py-24 bg-gradient-to-b from-slate-950 to-slate-900">
         <div className="mx-auto max-w-5xl px-6">
@@ -466,7 +449,6 @@ export default function MiturabaInteractive() {
             <HelpCircle className="w-6 h-6 text-sky-400" />
             <h2 className="text-2xl md:text-3xl font-bold">Quiz rápido</h2>
           </header>
-
           <div className="space-y-6">
             {questions.map((qq, qi) => (
               <div key={qi} className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
@@ -477,15 +459,11 @@ export default function MiturabaInteractive() {
                     const correct = qq.correct === oi;
                     const show = answers[qi] !== null;
                     return (
-                      <button
-                        key={oi}
-                        onClick={() => setAnswers((arr) => arr.map((v, idx) => (idx === qi ? oi : v)))}
+                      <button key={oi} onClick={() => setAnswers((arr) => arr.map((v, idx) => (idx === qi ? oi : v)))}
                         className={`rounded-xl px-4 py-3 border transition text-left
                           ${selected ? "border-sky-400" : "border-slate-700 hover:border-slate-500"}
                           ${show && correct ? "bg-emerald-600/30" : "" }
-                          ${show && selected && !correct ? "bg-rose-600/20" : "" }
-                        `}
-                      >
+                          ${show && selected && !correct ? "bg-rose-600/20" : "" }`}>
                         <div className="flex items-center gap-2">
                           {show ? (correct ? <Check className="w-4 h-4"/> : selected ? <X className="w-4 h-4"/> : null) : null}
                           <span>{opt}</span>
@@ -496,33 +474,6 @@ export default function MiturabaInteractive() {
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CRÓNICA COMPLETA (colapsable) */}
-      <section id="cronica" className="relative z-10 py-16 md:py-24">
-        <div className="mx-auto max-w-4xl px-6">
-          <header className="flex items-center gap-3 mb-4">
-            <BookText className="w-6 h-6 text-sky-400" />
-            <h2 className="text-2xl md:text-3xl font-bold">Crónica</h2>
-          </header>
-
-          <p className="text-slate-300 mb-4">
-            Un relato sobre memoria, infancia y territorio. Aquí puedes leer la crónica completa del proyecto.
-          </p>
-
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
-            {(showFull ? cronica : cronica.slice(0, 2)).map((p, i) => (
-              <p key={i} className={`text-slate-200 ${i ? "mt-4" : ""}`}>{p}</p>
-            ))}
-
-            <div className="mt-6">
-              <button onClick={() => setShowFull(!showFull)}
-                className="rounded-xl border border-slate-600 hover:border-slate-400 px-4 py-2">
-                {showFull ? "Ver menos" : "Leer crónica completa"}
-              </button>
-            </div>
           </div>
         </div>
       </section>
