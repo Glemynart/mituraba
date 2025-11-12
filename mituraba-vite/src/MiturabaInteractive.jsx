@@ -57,34 +57,39 @@ export default function MiturabaInteractive() {
   ];
 
   // ---- Crónica ----
-  const cronica = [
+const cronica = [
     `MITURABÁ: ¿Quién preservará la memoria cuando esta se mezcla con la violencia?`,
-    `Iniciamos una búsqueda que creíamos hallada, ... (texto completo que compartiste)`,
+    `Iniciamos una búsqueda que creíamos hallada, en las manos, incapaz de colarse entre los minuciosos espacios de los dedos, como quienes dicen: “ya fue” Nosotros conocíamos todo, o eso suponíamos, dado que el semestre pasado tuvimos la fortuna de investigar sobre él, recopilar datos y perspectivas adicionales.`,
     `¿El proyecto se mantuvo igual hasta el final?
 Solo lo que se mantiene igual es porque no tiene fondo ni tela de dónde cortar. Esa es nuestra respuesta.`,
-    `Inicialmente partimos de una reportería ...`,
+    `Inicialmente partimos de una reportería en la que la fuente principal nos contaba cómo su mejor amigo de infancia perdió la vida en la masacre de Bajo del Oso de 1995. De allí surgió el mito de que, por esa masacre, ese lugar se mantiene oscuro y con mucha lluvia. La idea inicial era narrarlo mediante la técnica de animación stop motion, junto con una entrevista a la hija de la fuente.`,
     `¿Cómo terminó todo?
-Como primera decisión ética, ...`,
-    `Desde lo estético, ... ¿Y quiénes contarán los mitos?`,
-    `Al investigar, ... segunda decisión ética.`,
-    `¿Contar o no contar algo que pudo —o no— ser verdad? ...`,
-    `Proteger las memorias ...`,
-    `“El lugar donde siempre llueve” ...`,
-    `Como investigadora, ...`,
-    `En este caso, la respuesta fue no. ...`,
-    `Fue entonces cuando comprendimos ...`,
-    `Desde lo estético, la primera pregunta fue: ...`,
-    `Exploramos los espacios ...`,
-    `Lo mismo ocurrió con Bajo del Oso ...`,
-    `A esas alturas ya comprendimos ...`,
-    `Optamos por no mostrar el nombre de la finca ...`,
-    `También evitamos primeros planos ...`,
+Como primera decisión ética, preferimos proteger a la fuente y a su hija, dado que en el sector de Currulao aún existen agentes armados. Por lo tanto, se decidió omitir la entrevista y buscar una manera distinta de narrar.`,
+    `Desde lo estético, tuvimos que dejar de lado la animación. Si bien era nuestro sueño utilizarla, no contábamos con el tiempo necesario para ello —a nivel de la escultura de los personajes y la animación en los programas—, así que tuvimos que sumergirnos en el terreno real:
+¿Cómo se ve Bajo del Oso? ¿Y quiénes contarán los mitos?`,
+    `Al investigar, nuestra primera opción fue realizar un mini documental. Sin embargo, al revisar documentos oficiales nos percatamos de que el niño mencionado en la anécdota de la fuente no figuraba entre las 24 víctimas de la masacre, lo que nos llevó a tomar nuestra segunda decisión ética.`,
+    `¿Contar o no contar algo que pudo —o no— ser verdad?
+Como grupo decidimos guardar la historia para otra ocasión, cuando dispongamos de más tiempo para pulirla e investigar más al respecto. No queríamos reabrir heridas pasadas en la comunidad con historias cuya veracidad no podíamos confirmar más allá de un testimonio.`,
+    `Proteger las memorias de la comunidad y de sus víctimas fue prioridad. La nueva tarea era no solo mostrar el mito, sino también una masacre igual de dolorosa que la muerte de un amigo de infancia.`,
+    `Por otro lado, el mito al que bautizamos “El lugar donde siempre llueve” era una parte esencial, quizás lo que haría más simbólico —y menos traumático— revivir un hecho tan doloroso para la región. Con esa intención, decidimos realizar nuestra investigación con niños, la parte más frágil, creativa y cercana a la magia con la que se adorna la realidad.`,
+    `Como investigadora, comencé con mi público más cercano: mis vecinos del barrio La Esperanza, en el corregimiento de Currulao. Niños de cuatro a nueve años con quienes jugué y compartí. Al cabo de unos días, terminé preguntándoles si sabían lo que eran los mitos y las leyendas, asumiendo que responderían que sí.`,
+    `En este caso, la respuesta fue no. Los niños no sabían qué eran los mitos ni las leyendas. Por el contrario, se mostraron muy emocionados; ellos las llamaban “historias de miedo”. Comencé con lo más básico: leerles las historias que me pedían y desconocían: La Llorona, La Patasola, La Bruja. Lo curioso fue que, en vez de miedo, les causaban mucha alegría. Abrazos entre todos para no sentir terror y risas nerviosas acompañaron cada relato. La calidez era el tono principal, algo contrario a lo lúgubre con lo que solemos imaginar los escenarios donde se cuentan los mitos y las leyendas.`,
+    `Fue entonces cuando comprendimos la necesidad de que las nuevas generaciones conozcan la memoria del territorio, y que esta no sea un asunto trivial u olvidado. Desde este enfoque nació MITURABÁ, una apuesta por la memoria de la región y su reivindicación mediante mitos contados a los niños del territorio, en este caso, del corregimiento de Currulao.`,
+    `Desde lo estético, la primera pregunta fue: ¿Cómo mostrar y enseñar el mito?
+Decidimos hacerlo mediante una canción infantil, una ronda pegajosa, algo que mostrara otra cara: la de los niños que también narran su territorio. La segunda decisión fue abandonar la ambigüedad de abordarlo desde el terror, y hacerlo desde la calidez y la emoción que sienten los niños al escuchar estas historias, a través de un ritual que ellos llaman “la lluvia”.`,
+    `Exploramos los espacios y jugamos con ellos. Utilizamos colores cálidos, dibujos infantiles y composiciones cuidadas, respetando la intención narrativa sin que pareciera un trabajo prefabricado o sensacionalista.`,
+    `Lo mismo ocurrió con Bajo del Oso y, posteriormente, con la locación de Currulao, donde grabamos lo simbólico de la masacre. Allí tuvimos que tomar varias decisiones éticas y estéticas: ¿Ser crudos o simbólicos? ¿Decir el nombre de la finca o no?
+A esas alturas ya comprendimos que no era un mini documental, sino un proyecto de ficción, lo que implicó escribir el guion desde cero. No uno, ni dos, sino cuatro guiones. Finalmente, el formato elegido —dado el poco tiempo que teníamos— fue el teaser: imágenes cortas pero profundas.`,
+    `Optamos por no mostrar el nombre de la finca, pues no queríamos revictimizar el lugar ni asociarlo con una carga negativa. Desde lo visual, Bajo del Oso no se veía como un lugar lúgubre, sino muy agradable, con mucha vegetación, las casas se mezclaban con la carretera, muy oscuro eso sí, habían nubes de lluvia y mucho viento, pero un ambiente cálido, por ello tampoco queríamos poner de nuevo el concepto de “Violencia” sobre una vereda que hoy en día es sumamente tranquila. Por esta razón en lugar de utilizar gritos, exceso de sangre o tonalidades oscuras y frías, elegimos mostrar todo mediante el simbolismo, las escenas que grabamos en Currulao en dónde  un hombre se baja de un bus y camina con botas que dejan huellas rojas, esto como una metafora  de la masacre cometida por las FARC, quienes obligaron a los trabajadores bananeros a salir para finalmente fusilarlos y degollarlos.`,
+    `También evitamos primeros planos de los rostros de los niños, dado que no deja de ser un tema sensible.`,
     `¿Se logró terminar el proyecto?
-La respuesta es sí. ...`,
-    `Así que, desde lo estético, ...`,
-    `Ahora que hemos culminado ...`,
-    `Como realizadores, ...`,
-    `Hoy nos honra mostrar este producto ...`,
+La respuesta es sí. Mi persona, Mariana Moncada González, junto con el director de fotografía Alexis David Quintero Sepúlveda, logramos grabar todas las escenas en dos días. La escena más retadora fue lograr la lluvia. Inicialmente queríamos que los niños jugaran mientras llovía, pero esta nunca llegó.`,
+    `Así que, desde lo estético, optamos por una escena en la que los niños salpican con agua sus dibujos, como simbolismo de que la memoria no se puede borrar con la lluvia: esta sigue más viva que nunca.`,
+    `Ahora que hemos culminado el proyecto, cada vez que salgo de mi casa me encuentro con un:
+-“Mariana, ¿podemos cantar la canción de la lluvia?”-
+Dibujos que dejan en la puerta de mi casa, que me recuerdan el tiempo que dedicamos a tejer una historia sensible, significativa y profunda.`,
+    `Como realizadores, nos llevamos experiencias muy amenas. Aprendimos a narrar no desde el “nosotros”, no desde la revictimización, sino desde el respeto por los imaginarios colectivos y su manera de afrontar el duelo del conflicto armado mediante la construcción de mitos y leyendas.`,
+    `Hoy nos honra mostrar este producto, ser parte de un nuevo tejido de memoria desde la niñez del Corregimiento de Currulao.`,
   ];
   const [showFull, setShowFull] = useState(false);
 
