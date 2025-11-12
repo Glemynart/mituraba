@@ -1,42 +1,38 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
-import { Cloud, Droplets, Music, Info, Volume2 } from "lucide-react";
+import { Cloud, Droplets, Music, Info, Volume2, Image as ImageIcon, HelpCircle, Check, X } from "lucide-react";
 
-// MITURABÁ – Componente principal (Vite + React + Tailwind + Framer Motion)
-// - Lluvia animada en background
-// - Intro “La búsqueda”
-// - Decisiones éticas (acordeones)
-// - Mitos (nubes clicables + audio corto)
-// - Galería con lightbox (usa tus fotos)
-// - Sección de audio/ritual de lluvia
-// - Cierre con CTA (listo para embeder formulario si quieres)
+/*  MITURABÁ — Versión PRO
+    - Lluvia animada con control de intensidad
+    - Intro “La búsqueda”
+    - Decisiones éticas (acordeones)
+    - Mitos (5): imagen + modal + audio al abrir
+    - Galería con lightbox + navegación por teclado
+    - Muro de memorias (local, animado)
+    - Quiz (3 preguntas con feedback)
+*/
 
 export default function MiturabaInteractive() {
   const { scrollYProgress } = useScroll();
-  const rainOpacity = useTransform(scrollYProgress, [0, 1], [0.15, 0.6]);
-  const heroScale = useTransform(scrollYProgress, [0, 0.3], [1, 1.1]);
-
-  const [showEthics, setShowEthics] = useState(null);
-  const [cloudOpen, setCloudOpen] = useState(null);
-  const [lightboxSrc, setLightboxSrc] = useState(null);
-  const [caption, setCaption] = useState("");
+  const barWidth = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
   const [rainOn, setRainOn] = useState(false);
+  const [rainIntensity, setRainIntensity] = useState(0.4); // 0..1
+  const [showEthics, setShowEthics] = useState(null);
 
-  // Sonido ambiental (toggle en el hero)
+  // --- Sonido ambiental
   useEffect(() => {
     const a = new Audio("/audios/ambiente-lluvia.wav");
     a.loop = true;
+    a.volume = rainIntensity;
     if (rainOn) a.play();
     else {
       a.pause();
       a.currentTime = 0;
     }
-    return () => {
-      a.pause();
-    };
-  }, [rainOn]);
+    return () => a.pause();
+  }, [rainOn, rainIntensity]);
 
-  // TEXTOS – Decisiones éticas
+  // --- TEXTOS
   const ethics = useMemo(
     () => [
       {
@@ -63,44 +59,124 @@ export default function MiturabaInteractive() {
     []
   );
 
-  // TEXTOS – Mitos (nubes)
-  const myths = useMemo(
-    () => [
-      {
-        title: "El lugar donde siempre llueve",
-        body:
-          "Los niños cantan y salpican agua sobre sus dibujos: la memoria se moja, pero no se borra.",
-      },
-      {
-        title: "Historias de miedo (que alegran)",
-        body:
-          "A los 4–9 años les llaman así. Entre risas nerviosas y abrazos, el miedo se vuelve juego y compañía.",
-      },
-      {
-        title: "Las huellas que hablan",
-        body:
-          "Un hombre baja del bus. Sus botas dejan rastro rojo: un gesto para recordar sin mostrar la violencia.",
-      },
-    ],
-    []
-  );
+  // IMÁGENES DEL PROYECTO (usa las tuyas)
+  const gallery = [
+    { src: "/img/porton-bananera.jpg", alt: "Entrada bananera" },
+    { src: "/img/nina-lluvia.jpg", alt: "Niña jugando bajo el chorro" },
+    { src: "/img/dibujo-nino-1.jpg", alt: "Dibujo infantil 1" },
+    { src: "/img/arbol-noche.jpg", alt: "Árbol y raíces" },
+    { src: "/img/dibujo-ninos-varios.jpg", alt: "Dibujos infantiles varios" },
+  ];
 
-  // Audio corto al abrir cada mito (por ahora reutilizamos el ambiente; puedes poner archivos distintos)
-  const mythAudios = useMemo(
-    () => myths.map(() => new Audio("/audios/ambiente-lluvia.wav")),
-    [myths]
-  );
+  // MITOS (5) — cada uno con imagen y texto corto
+  const myths = [
+    {
+      title: "El lugar donde siempre llueve",
+      img: "/img/dibujo-nino-1.jpg",
+      body:
+        "Los niños salpican agua sobre sus dibujos: la memoria se moja, pero no se borra.",
+    },
+    {
+      title: "Historias de miedo (que alegran)",
+      img: "/img/dibujo-ninos-varios.jpg",
+      body:
+        "A los 4–9 años les llaman así. Entre risas y abrazos, el miedo se vuelve compañía.",
+    },
+    {
+      title: "Las huellas que hablan",
+      img: "/img/porton-bananera.jpg",
+      body:
+        "Un hombre baja del bus. Sus botas dejan rastro rojo: recordar sin mostrar la violencia.",
+    },
+    {
+      title: "La guardiana del río",
+      img: "/img/arbol-noche.jpg",
+      body:
+        "Una figura cuida que el agua lleve historias, no olvido. Si la escuchas, pide respeto.",
+    },
+    {
+      title: "La casa del árbol",
+      img: "/img/nina-lluvia.jpg",
+      body:
+        "Debajo del follaje, la ronda infantil suena más fuerte que la tormenta.",
+    },
+  ];
+
+  // Estado para mitos
+  const [mythOpen, setMythOpen] = useState(null); // índice del modal
+
+  // Audio de “clic de mito” (reutilizamos ambiente)
+  const clickAudio = useRef(null);
+  useEffect(() => {
+    clickAudio.current = new Audio("/audios/ambiente-lluvia.wav");
+    clickAudio.current.volume = 0.4;
+  }, []);
+  const playClick = () => {
+    try {
+      if (clickAudio.current) {
+        clickAudio.current.currentTime = 0.1;
+        clickAudio.current.play();
+      }
+    } catch {}
+  };
+
+  // --- LIGHTBOX GALERÍA
+  const [lightbox, setLightbox] = useState({ open: false, index: 0 });
+  useEffect(() => {
+    const onKey = (e) => {
+      if (!lightbox.open) return;
+      if (e.key === "Escape") setLightbox({ open: false, index: 0 });
+      if (e.key === "ArrowRight")
+        setLightbox((s) => ({ open: true, index: (s.index + 1) % gallery.length }));
+      if (e.key === "ArrowLeft")
+        setLightbox((s) => ({ open: true, index: (s.index - 1 + gallery.length) % gallery.length }));
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightbox.open, gallery.length]);
+
+  // --- MURO DE MEMORIAS (local)
+  const [memoryInput, setMemoryInput] = useState("");
+  const [memories, setMemories] = useState([]);
+  const addMemory = () => {
+    if (!memoryInput.trim()) return;
+    setMemories((m) => [{ text: memoryInput.trim(), t: Date.now() }, ...m].slice(0, 20));
+    setMemoryInput("");
+  };
+
+  // --- QUIZ
+  const questions = [
+    {
+      q: "¿Qué prioriza MITURABÁ al narrar?",
+      a: ["El impacto sensacionalista", "La protección y el respeto", "Mostrar rostros y nombres"],
+      correct: 1,
+    },
+    {
+      q: "¿Qué simbolizan las huellas rojas?",
+      a: ["Decoración de escena", "Alegría del carnaval", "Recuerdo del pasado sin crudeza"],
+      correct: 2,
+    },
+    {
+      q: "Cuando un dato no se puede comprobar, ¿qué hacemos?",
+      a: ["Lo publicamos igual", "Lo omitimos y verificamos", "Lo exageramos"],
+      correct: 1,
+    },
+  ];
+  const [answers, setAnswers] = useState(Array(questions.length).fill(null));
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-slate-900 via-slate-950 to-black text-slate-100 relative overflow-x-hidden">
-      {/* Capa de lluvia */}
-      <motion.div style={{ opacity: rainOpacity }} aria-hidden className="pointer-events-none fixed inset-0 z-0">
-        <RainLayer />
-      </motion.div>
+      {/* Barra de progreso */}
+      <motion.div style={{ width: barWidth }} className="fixed top-0 left-0 h-1 bg-sky-500 z-50" />
+
+      {/* Lluvia visual */}
+      <div className="pointer-events-none fixed inset-0 z-0">
+        <RainLayer intensity={rainIntensity} />
+      </div>
 
       {/* HERO */}
       <section className="relative z-10">
-        <motion.div style={{ scale: heroScale }} className="mx-auto max-w-6xl px-6 pt-20 pb-16 md:pt-28">
+        <div className="mx-auto max-w-6xl px-6 pt-20 pb-16 md:pt-28">
           <div className="grid md:grid-cols-2 gap-8 items-center">
             <div>
               <h1 className="text-4xl md:text-6xl font-extrabold leading-tight">
@@ -113,28 +189,36 @@ export default function MiturabaInteractive() {
                 Una crónica interactiva sobre memoria, infancia y territorio en Currulao. Elegimos la calidez y el símbolo
                 para hablar del duelo colectivo sin abrir heridas: la lluvia, el juego y los dibujos como formas de recordar.
               </p>
-              <div className="mt-6 flex flex-wrap gap-3">
-                <a
-                  href="#recorrido"
-                  className="inline-flex items-center gap-2 rounded-2xl bg-sky-600/90 hover:bg-sky-500 px-5 py-3 shadow-lg shadow-sky-900/40 transition"
-                >
+
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                <a href="#recorrido" className="inline-flex items-center gap-2 rounded-2xl bg-sky-600/90 hover:bg-sky-500 px-5 py-3 shadow-lg shadow-sky-900/40 transition">
                   <Droplets className="w-5 h-5" />
                   Iniciar recorrido
                 </a>
-                <button
-                  onClick={() => setRainOn(!rainOn)}
-                  className="inline-flex items-center gap-2 rounded-2xl border border-slate-700 hover:border-slate-500 px-5 py-3"
-                >
+
+                <button onClick={() => setRainOn(!rainOn)} className="inline-flex items-center gap-2 rounded-2xl border border-slate-700 hover:border-slate-500 px-4 py-3">
                   <Volume2 className="w-5 h-5" />
                   {rainOn ? "Pausar lluvia" : "Reproducir lluvia"}
                 </button>
+
+                <div className="flex items-center gap-2 text-sm text-slate-300">
+                  Intensidad:
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    value={rainIntensity}
+                    onChange={(e) => setRainIntensity(parseFloat(e.target.value))}
+                    className="w-28 accent-sky-500"
+                  />
+                </div>
               </div>
             </div>
-            <div className="relative">
-              <HeroCard />
-            </div>
+
+            <HeroCard />
           </div>
-        </motion.div>
+        </div>
       </section>
 
       {/* INTRO – La búsqueda */}
@@ -193,7 +277,7 @@ export default function MiturabaInteractive() {
         </div>
       </section>
 
-      {/* MITOS – Nubes clicables con audio */}
+      {/* MITOS — tarjetas + modal */}
       <section id="mitos" className="relative z-10 py-16 md:py-24 bg-gradient-to-b from-slate-950 to-slate-900">
         <div className="mx-auto max-w-6xl px-6">
           <header className="flex items-center gap-3 mb-8">
@@ -201,60 +285,56 @@ export default function MiturabaInteractive() {
             <h2 className="text-2xl md:text-3xl font-bold">Mitos del territorio</h2>
           </header>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-5 gap-4">
             {myths.map((m, i) => (
               <motion.button
                 key={i}
-                onClick={() => {
-                  setCloudOpen(cloudOpen === i ? null : i);
-                  try {
-                    const a = mythAudios[i];
-                    a.currentTime = 0;
-                    a.play();
-                  } catch {}
-                  setCaption(m.body);
-                  setTimeout(() => setCaption(""), 4000);
-                }}
+                onClick={() => { setMythOpen(i); playClick(); }}
                 whileHover={{ y: -4 }}
-                className="rounded-3xl p-6 bg-slate-900/60 border border-slate-800 shadow-xl text-left"
+                className="rounded-2xl p-3 bg-slate-900/60 border border-slate-800 shadow-xl text-left"
               >
-                <div className="flex items-center gap-3">
-                  <Cloud className="w-6 h-6" />
-                  <p className="font-semibold">{m.title}</p>
+                <div className="aspect-[4/3] rounded-xl overflow-hidden mb-2 bg-slate-800/40 border border-slate-700">
+                  <img src={m.img} alt={m.title} className="w-full h-full object-cover" />
                 </div>
-                <AnimatePresence initial={false}>
-                  {cloudOpen === i && (
-                    <motion.p
-                      initial={{ opacity: 0, y: -6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -6 }}
-                      className="mt-3 text-slate-300"
-                    >
-                      {m.body}
-                    </motion.p>
-                  )}
-                </AnimatePresence>
+                <div className="flex items-center gap-2">
+                  <Cloud className="w-4 h-4" />
+                  <p className="font-semibold text-sm">{m.title}</p>
+                </div>
               </motion.button>
             ))}
           </div>
-
-          {/* Subtítulo flotante al activar una nube */}
-          <AnimatePresence>
-            {caption && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-black/70 border border-slate-700 px-4 py-2 rounded-xl text-sm"
-              >
-                {caption}
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
+
+        {/* MODAL DE MITO */}
+        <AnimatePresence>
+          {mythOpen !== null && (
+            <motion.div
+              className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setMythOpen(null)}
+            >
+              <motion.div
+                onClick={(e) => e.stopPropagation()}
+                className="bg-slate-900/90 border border-slate-700 rounded-3xl p-5 max-w-2xl w-full"
+                initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+              >
+                <div className="aspect-[16/9] rounded-2xl overflow-hidden mb-4 border border-slate-700">
+                  <img src={myths[mythOpen].img} alt={myths[mythOpen].title} className="w-full h-full object-cover" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">{myths[mythOpen].title}</h3>
+                <p className="text-slate-300">{myths[mythOpen].body}</p>
+                <div className="mt-4 text-right">
+                  <button onClick={() => setMythOpen(null)} className="rounded-xl px-4 py-2 border border-slate-600 hover:border-slate-400">
+                    Cerrar
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </section>
 
-      {/* AUDIO / RITUAL DE LLUVIA */}
+      {/* AUDIO / RITUAL */}
       <section id="audio" className="relative z-10 py-16 md:py-24">
         <div className="mx-auto max-w-4xl px-6">
           <header className="flex items-center gap-3 mb-4">
@@ -262,83 +342,142 @@ export default function MiturabaInteractive() {
             <h2 className="text-2xl md:text-3xl font-bold">Lluvia & ritual</h2>
           </header>
           <p className="text-slate-300 mb-4">
-            Lluvia y ronda infantil como ritual de memoria. El agua cae sobre el papel, pero el dibujo persiste: recordar también es jugar.
+            Lluvia y ronda infantil como ritual de memoria. El agua cae sobre el papel, pero el dibujo persiste:
+            recordar también es jugar.
           </p>
           <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
             <audio controls className="w-full">
               <source src="/audios/ambiente-lluvia.wav" type="audio/wav" />
             </audio>
             <p className="text-xs text-slate-400 mt-3">
-              Consejo: puedes sustituir el audio por voces infantiles o una canción propia.
+              Consejo: puedes sustituir este audio por voces o una canción propia (colócala en <code>/public/audios/</code>).
             </p>
           </div>
         </div>
       </section>
 
-      {/* GALERÍA con lightbox */}
+      {/* GALERÍA */}
       <section id="galeria" className="relative z-10 py-16 md:py-24 bg-gradient-to-b from-slate-900 to-slate-950">
         <div className="mx-auto max-w-6xl px-6">
           <h2 className="text-2xl md:text-3xl font-bold mb-2">Galería</h2>
           <p className="text-slate-300 mb-8">
-            Territorio, juego, símbolo. Esta galería recoge paisajes, escenas cotidianas y dibujos infantiles que inspiran el proyecto.
+            Territorio, juego, símbolo. Esta galería recoge paisajes, escenas y dibujos infantiles que inspiran el proyecto.
           </p>
 
           <div className="grid md:grid-cols-3 gap-6">
-            {[
-              "/img/porton-bananera.jpg",
-              "/img/nina-lluvia.jpg",
-              "/img/dibujo-nino-1.jpg",
-              "/img/arbol-noche.jpg",
-              "/img/dibujo-ninos-varios.jpg",
-            ].map((src, idx) => (
-              <button
-                key={idx}
-                onClick={() => setLightboxSrc(src)}
-                className="aspect-[4/3] rounded-3xl bg-slate-900/60 border border-slate-800 shadow-xl overflow-hidden"
-              >
-                <img src={src} alt={`Imagen ${idx + 1}`} className="w-full h-full object-cover" />
+            {gallery.map((g, idx) => (
+              <button key={idx} onClick={() => setLightbox({ open: true, index: idx })} className="aspect-[4/3] rounded-3xl bg-slate-900/60 border border-slate-800 shadow-xl overflow-hidden">
+                <img src={g.src} alt={g.alt} className="w-full h-full object-cover" />
               </button>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Lightbox */}
+      {/* LIGHTBOX */}
       <AnimatePresence>
-        {lightboxSrc && (
-          <motion.div
-            className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setLightboxSrc(null)}
+        {lightbox.open && (
+          <motion.div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setLightbox({ open: false, index: 0 })}
           >
-            <img src={lightboxSrc} alt="Ampliada" className="max-h-[90vh] max-w-[90vw] rounded-2xl" />
+            <img
+              src={gallery[lightbox.index].src}
+              alt={gallery[lightbox.index].alt}
+              className="max-h-[90vh] max-w-[90vw] rounded-2xl"
+            />
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* CIERRE / CTA */}
+      {/* MURO DE MEMORIAS (local) */}
+      <section id="memorias" className="relative z-10 py-16 md:py-24">
+        <div className="mx-auto max-w-5xl px-6">
+          <header className="flex items-center gap-3 mb-4">
+            <ImageIcon className="w-6 h-6 text-sky-400" />
+            <h2 className="text-2xl md:text-3xl font-bold">Muro de memorias</h2>
+          </header>
+          <div className="grid md:grid-cols-3 gap-4">
+            <div className="md:col-span-1">
+              <input
+                value={memoryInput}
+                onChange={(e) => setMemoryInput(e.target.value)}
+                placeholder="Escribe una palabra/recuerdo…"
+                className="w-full rounded-xl bg-slate-900/60 border border-slate-700 px-4 py-3 outline-none focus:border-slate-400"
+              />
+              <button onClick={addMemory} className="mt-2 w-full rounded-xl bg-sky-600/90 hover:bg-sky-500 px-4 py-3">Agregar</button>
+              <p className="text-xs text-slate-400 mt-2">*Esto se guarda solo en esta sesión (sin backend).</p>
+            </div>
+            <div className="md:col-span-2 grid grid-cols-2 md:grid-cols-3 gap-3">
+              <AnimatePresence>
+                {memories.map((m) => (
+                  <motion.div
+                    key={m.t}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    className="rounded-xl border border-slate-700 bg-slate-900/60 p-3 text-sm"
+                  >
+                    {m.text}
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* QUIZ */}
+      <section id="quiz" className="relative z-10 py-16 md:py-24 bg-gradient-to-b from-slate-950 to-slate-900">
+        <div className="mx-auto max-w-5xl px-6">
+          <header className="flex items-center gap-3 mb-6">
+            <HelpCircle className="w-6 h-6 text-sky-400" />
+            <h2 className="text-2xl md:text-3xl font-bold">Quiz rápido</h2>
+          </header>
+
+          <div className="space-y-6">
+            {questions.map((qq, qi) => (
+              <div key={qi} className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
+                <p className="font-semibold mb-3">{qi + 1}. {qq.q}</p>
+                <div className="grid md:grid-cols-3 gap-3">
+                  {qq.a.map((opt, oi) => {
+                    const selected = answers[qi] === oi;
+                    const correct = qq.correct === oi;
+                    const show = answers[qi] !== null;
+                    return (
+                      <button
+                        key={oi}
+                        onClick={() => setAnswers((arr) => arr.map((v, idx) => (idx === qi ? oi : v)))}
+                        className={`rounded-xl px-4 py-3 border transition text-left
+                          ${selected ? "border-sky-400" : "border-slate-700 hover:border-slate-500"}
+                          ${show && correct ? "bg-emerald-600/30" : "" }
+                          ${show && selected && !correct ? "bg-rose-600/20" : "" }
+                        `}
+                      >
+                        <div className="flex items-center gap-2">
+                          {show ? (correct ? <Check className="w-4 h-4"/> : selected ? <X className="w-4 h-4"/> : null) : null}
+                          <span>{opt}</span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CIERRE */}
       <footer className="relative z-10 py-16 md:py-24">
         <div className="mx-auto max-w-5xl px-6 text-center">
           <h3 className="text-2xl md:text-3xl font-bold">¿Qué historia del territorio no debe borrarse?</h3>
           <p className="mt-3 text-slate-300 max-w-2xl mx-auto">
             Deja una palabra, un recuerdo o un mito local. Este tejido de voces es MITURABÁ.
           </p>
-
-          {/* Si quieres formulario embebido, reemplaza # por tu URL o usa un iframe debajo */}
-          <a
-            href="#"
-            className="inline-flex items-center gap-2 mt-6 rounded-2xl bg-sky-600/90 hover:bg-sky-500 px-6 py-3 shadow-lg shadow-sky-900/40 transition"
-          >
+          <a href="#" className="inline-flex items-center gap-2 mt-6 rounded-2xl bg-sky-600/90 hover:bg-sky-500 px-6 py-3 shadow-lg shadow-sky-900/40 transition">
             Compartir memoria
           </a>
-
-          {/* Ejemplo de embed (opcional):
-          <div className="mt-8 rounded-2xl border border-slate-800 overflow-hidden bg-slate-900/60">
-            <iframe src="TU_EMBED_DE_GOOGLE_FORMS" className="w-full h-[640px]" loading="lazy" title="Compartir memoria" />
-          </div>
-          */}
           <p className="text-xs text-slate-500 mt-4">Prototipo – MITURABÁ</p>
         </div>
       </footer>
@@ -378,18 +517,19 @@ function HeroCard() {
   );
 }
 
-function RainLayer() {
+function RainLayer({ intensity = 0.4 }) {
+  const drops = Math.round(40 + intensity * 80); // 40..120
   return (
     <div className="absolute inset-0 overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(56,189,248,0.10),_transparent_60%)]" />
       <div className="absolute inset-0">
-        {Array.from({ length: 40 }).map((_, i) => (
+        {Array.from({ length: drops }).map((_, i) => (
           <span
             key={i}
             className="absolute top-[-10%] h-28 w-px bg-sky-400/40 animate-[raindrop_1.6s_linear_infinite]"
             style={{
-              left: `${(i * 2.5) % 100}%`,
-              animationDelay: `${(i % 10) * 0.12}s`,
+              left: `${(i * 97) % 100}%`,
+              animationDelay: `${(i % 15) * 0.08}s`,
               transform: `translateY(${(i % 5) * 10}px)`,
             }}
           />
